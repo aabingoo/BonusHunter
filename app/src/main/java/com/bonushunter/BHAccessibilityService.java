@@ -1,7 +1,9 @@
 package com.bonushunter;
 
 import android.accessibilityservice.AccessibilityService;
+import android.app.Instrumentation;
 import android.app.Service;
+import android.app.UiAutomation;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
@@ -9,7 +11,10 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
+
 import java.util.List;
+
+import androidx.test.uiautomator.UiDevice;
 
 public class BHAccessibilityService extends AccessibilityService {
     private static final String TAG = BHAccessibilityService.class.getSimpleName();
@@ -23,51 +28,53 @@ public class BHAccessibilityService extends AccessibilityService {
         int eventType = event.getEventType();
         Log.d(TAG, "onAccessibilityEvent - event:" + event.toString());
 
-         
+
+//        performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
+//         UiAutomation
 
         switch (eventType) {
             case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
 //                Log.d(TAG, "TYPE_WINDOW_STATE_CHANGED - content change type:" + event.getContentChangeTypes());
-                String pckName = event.getPackageName().toString();
-                if (pckName.contains("launcher")) {
-                    AccessibilityNodeInfo rootNode = getRootInActiveWindow();
-                    List<AccessibilityNodeInfo> appNodes = rootNode.findAccessibilityNodeInfosByText("西瓜视频");
-                    Log.d(TAG, "find node cnt:" + appNodes.size());
-                    if (appNodes.size() == 1) {
-                        Log.d(TAG, "node info:" + appNodes.toString());
-                        appNodes.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    }
-
-                    List<AccessibilityWindowInfo> windowNodes = getWindows();
-                    Log.d(TAG, "TYPE_WINDOW_STATE_CHANGED windowNodes cnt:" + windowNodes.size());
-                    for (AccessibilityWindowInfo windowNode: windowNodes) {
-                        Log.d(TAG, "TYPE_WINDOW_STATE_CHANGED window info:" + windowNode.toString());
-                    }
-                }
+//                String pckName = event.getPackageName().toString();
+//                if (pckName.contains("launcher")) {
+//                    AccessibilityNodeInfo rootNode = getRootInActiveWindow();
+//                    List<AccessibilityNodeInfo> appNodes = rootNode.findAccessibilityNodeInfosByText("西瓜视频");
+//                    Log.d(TAG, "find node cnt:" + appNodes.size());
+//                    if (appNodes.size() == 1) {
+//                        Log.d(TAG, "node info:" + appNodes.toString());
+//                        appNodes.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+//                    }
+//
+//                    List<AccessibilityWindowInfo> windowNodes = getWindows();
+//                    Log.d(TAG, "TYPE_WINDOW_STATE_CHANGED windowNodes cnt:" + windowNodes.size());
+//                    for (AccessibilityWindowInfo windowNode: windowNodes) {
+//                        Log.d(TAG, "TYPE_WINDOW_STATE_CHANGED window info:" + windowNode.toString());
+//                    }
+//                }
                 break;
 
             case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
 //                Log.d(TAG, "TYPE_WINDOW_CONTENT_CHANGED");
-                String pck = event.getPackageName().toString();
-                if (pck.equals("com.ss.android.article.video")) {
-                    Log.d(TAG, "open 西瓜视频");
-
-
-                    List<AccessibilityWindowInfo> windowNodes = getWindows();
-                    Log.d(TAG, "windowNodes cnt:" + windowNodes.size());
-                    for (AccessibilityWindowInfo windowNode: windowNodes) {
-                        Log.d(TAG, "window info:" + windowNode.toString());
-                    }
-
-//                    AccessibilityNodeInfo rootNode = getRootInActiveWindow();
-//                    List<AccessibilityNodeInfo> appNodes = rootNode.findAccessibilityNodeInfosByText("直播");
-//                    Log.d(TAG, "find node cnt:" + appNodes.size());
-//                    for (AccessibilityNodeInfo node: appNodes) {
-//                        Log.d(TAG, "node info:" + appNodes.toString());
+//                String pck = event.getPackageName().toString();
+//                if (pck.equals("com.ss.android.article.video")) {
+//                    Log.d(TAG, "open 西瓜视频");
+//
+//
+//                    List<AccessibilityWindowInfo> windowNodes = getWindows();
+//                    Log.d(TAG, "windowNodes cnt:" + windowNodes.size());
+//                    for (AccessibilityWindowInfo windowNode: windowNodes) {
+//                        Log.d(TAG, "window info:" + windowNode.toString());
 //                    }
-                }
-
-                AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
+//
+////                    AccessibilityNodeInfo rootNode = getRootInActiveWindow();
+////                    List<AccessibilityNodeInfo> appNodes = rootNode.findAccessibilityNodeInfosByText("直播");
+////                    Log.d(TAG, "find node cnt:" + appNodes.size());
+////                    for (AccessibilityNodeInfo node: appNodes) {
+////                        Log.d(TAG, "node info:" + appNodes.toString());
+////                    }
+//                }
+//
+//                AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
                 break;
 
             case AccessibilityEvent.TYPE_VIEW_CLICKED:

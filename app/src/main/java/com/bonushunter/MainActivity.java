@@ -2,7 +2,9 @@ package com.bonushunter;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
@@ -16,5 +18,14 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "isAccessibilityEnabled:" + Utils.isAccessibilityEnabled(this));
         Log.d(TAG, "isAccessibilitySettingsOn:" + Utils.isAccessibilitySettingsOn(this,
                 BHAccessibilityService.class.getCanonicalName()));
+
+//        if (!Utils.isAccessibilityEnabled(this) ||
+////                !Utils.isAccessibilitySettingsOn(this,
+////                        BHAccessibilityService.class.getCanonicalName())) {
+////            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+////        }
+
+        FloatWindow.getInstance(this.getApplicationContext()).requestPermissionIfNeed();
+        FloatWindow.getInstance(this.getApplicationContext()).show();
     }
 }
