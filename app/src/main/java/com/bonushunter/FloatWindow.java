@@ -115,7 +115,7 @@ public class FloatWindow implements View.OnTouchListener {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                enable = !enable;
 
 //                enable = !enable;
 //                Log.d(TAG, "enable:" + enable);

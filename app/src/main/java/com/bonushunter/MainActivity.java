@@ -253,8 +253,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 alertDialog.setCanceledOnTouchOutside(false);
             } else {
                 FloatWindow.getInstance(this).show();
-                IAppRobot appRobot = AppRobotFactory.getAppRobot(mSelectedPkgName);
-                appRobot.start();
+                Utils.launchApp(this, mSelectedPkgName);
+//                IAppRobot appRobot = AppRobotFactory.getAppRobot(mSelectedPkgName);
+//                appRobot.start();
             }
         }
     }
