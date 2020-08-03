@@ -6,4 +6,5 @@
     android:canRetrieveWindowContent="true"
     android:canRequestFilterKeyEvents="true"
     android:canRequestEnhancedWebAccessibility="true"
+    android:canPerformGestures="true"
     android:notificationTimeout="100"/>

@@ -13,3 +13,8 @@
 /captures
 .externalNativeBuild
 .cxx
+sdk/.idea/*
+sdk/build/*
+sdk/.cxx/*
+sdk/.gradle/*
+

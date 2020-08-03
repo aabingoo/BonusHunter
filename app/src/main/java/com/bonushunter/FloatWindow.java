@@ -1,21 +1,29 @@
 package com.bonushunter;
 
+import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.GestureDescription;
 import android.app.UiAutomation;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 import android.widget.Button;
 
-import androidx.test.uiautomator.UiDevice;
+//import com.android.uiautomator.core.UiDevice;
 
 public class FloatWindow implements View.OnTouchListener {
 
@@ -52,6 +60,9 @@ public class FloatWindow implements View.OnTouchListener {
         }
     }
 
+    private int cnt = 0;
+    private volatile boolean enable = false;
+
     public void show() {
         mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
 
@@ -71,7 +82,32 @@ public class FloatWindow implements View.OnTouchListener {
         // set the origin
         mLayoutParams.gravity = Gravity.START | Gravity.TOP;
         mLayoutParams.x = 0;
-        mLayoutParams.y = 0;
+        mLayoutParams.y = 100;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true) {
+                    if (enable && Utils.service != null) {
+                        cnt += 1;
+                        Log.d(TAG, "cnt:" + cnt);
+                        if (cnt > 20) {
+                            Utils.swipeDown();
+                            if (cnt == 35) {
+                                cnt = 0;
+                            }
+                        } else {
+                            Utils.swipeUp();
+                        }
+                        try {
+                            Thread.sleep(15000);
+                        } catch (Exception e) {
+
+                        }
+                    }
+                }
+            }
+        }).start();
 
         Button button = new Button(mContext);
         button.setText("111");
@@ -79,8 +115,34 @@ public class FloatWindow implements View.OnTouchListener {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "22222");
-                UiDevice.getInstance().pressHome();
+
+
+//                enable = !enable;
+//                Log.d(TAG, "enable:" + enable);
+//
+////                UiDevice uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+////                uiDevice.pressHome();
+////                UiDevice.getInstance().pressHome();
+//                if (Utils.service != null) {
+//                    Log.d(TAG, "22222");
+//
+////                    Log.d(TAG, "return:" + ret);
+//
+//
+////                    for (AccessibilityWindowInfo windowInfo: Utils.service.getWindows()) {
+////                        Log.d(TAG, "window:" + windowInfo.toString());
+////                        if (windowInfo.getType() == AccessibilityWindowInfo.TYPE_APPLICATION) {
+////                            windowInfo.getRoot().performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+////                            windowInfo.getRoot().performAction(AccessibilityNodeInfo.ACTION_CLICK);
+////                            try {
+////
+////                            } catch (Exception e) {
+////
+////                            }
+////                        }
+////                    }
+//
+//                }
             }
         });
         button.setOnTouchListener(this);
@@ -109,6 +171,7 @@ public class FloatWindow implements View.OnTouchListener {
 
                 mPressX = x;
                 mPressY = y;
+                Log.d(TAG, "x,"+ x+ ",y,"+y);
 
                 mWindowManager.updateViewLayout(v, mLayoutParams);
                 break;
@@ -116,4 +179,6 @@ public class FloatWindow implements View.OnTouchListener {
 
         return false;
     }
+
+
 }

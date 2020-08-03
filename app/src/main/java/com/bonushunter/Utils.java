@@ -1,10 +1,21 @@
 package com.bonushunter;
 
+import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.GestureDescription;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Path;
+import android.net.Uri;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.Toast;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class Utils {
 
@@ -18,11 +29,11 @@ public class Utils {
 
     public static boolean isAccessibilitySettingsOn(Context context, String service) {
         Log.d(TAG, "isAccessibilitySettingsOn - service:" + service);
-        String settingsValue = Settings.Secure.getString(context.getContentResolver(),
+        String enabledAccessibilityService = Settings.Secure.getString(context.getContentResolver(),
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-        if (!TextUtils.isEmpty(settingsValue)) {
-            Log.d(TAG, "isAccessibilitySettingsOn - settingsValue:" + settingsValue);
-            String[] serviceList = settingsValue.split(":");
+        if (!TextUtils.isEmpty(enabledAccessibilityService)) {
+            Log.d(TAG, "isAccessibilitySettingsOn - enabledAccessibilityService:" + enabledAccessibilityService);
+            String[] serviceList = enabledAccessibilityService.split(":");
             for (String serviceName: serviceList) {
                 if (serviceName.contains(service)) {
                     return true;
@@ -31,4 +42,91 @@ public class Utils {
         }
         return false;
     }
+
+    public static void open(Context context) {
+
+        Log.d(TAG, "clss name:" + BHAccessibilityService.class.getCanonicalName());
+
+        String enabledAccessibilityService = Settings.Secure.getString(context.getContentResolver(),
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        if (!TextUtils.isEmpty(enabledAccessibilityService)) {
+            final Set<ComponentName> enabledServices = new HashSet<>();
+            final TextUtils.SimpleStringSplitter colonSplitter = new TextUtils.SimpleStringSplitter(':');
+            colonSplitter.setString(enabledAccessibilityService);
+            while (colonSplitter.hasNext()) {
+                final String componentNameString = colonSplitter.next();
+                final ComponentName enabledService = ComponentName.unflattenFromString(
+                        componentNameString);
+                if (enabledService != null) {
+                    enabledServices.add(enabledService);
+                }
+            }
+        }
+
+
+    }
+
+    public static void launchApp(Context context, String pkgName) {
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            Intent intent = packageManager.getLaunchIntentForPackage(pkgName);
+            context.startActivity(intent);
+        } catch (Exception e) {
+            Log.w(TAG, "Exception while startActivity:" + e.toString());
+            Toast.makeText(context, "请先安装该应用", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public static void swipeUp(){
+        Path path = new Path();
+        path.moveTo(100, 2000);
+        path.lineTo(100, 300);
+
+        GestureDescription.StrokeDescription strokeDescription =
+                new GestureDescription.StrokeDescription(path, 0, 800);
+        GestureDescription description = new GestureDescription.Builder()
+                .addStroke(strokeDescription)
+                .build();
+        boolean ret = Utils.service.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
+            @Override
+            public void onCompleted(GestureDescription gestureDescription) {
+                super.onCompleted(gestureDescription);
+                Log.d(TAG, "onCompleted");
+            }
+
+            @Override
+            public void onCancelled(GestureDescription gestureDescription) {
+                super.onCancelled(gestureDescription);
+                Log.d(TAG, "onCancelled");
+            }
+        }, null);
+    }
+
+    public static void swipeDown() {
+        Path path = new Path();
+        path.moveTo(100, 300);
+        path.lineTo(100, 2000);
+
+        GestureDescription.StrokeDescription strokeDescription =
+                new GestureDescription.StrokeDescription(path, 0, 800);
+        GestureDescription description = new GestureDescription.Builder()
+                .addStroke(strokeDescription)
+                .build();
+        boolean ret = Utils.service.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
+            @Override
+            public void onCompleted(GestureDescription gestureDescription) {
+                super.onCompleted(gestureDescription);
+                Log.d(TAG, "onCompleted");
+            }
+
+            @Override
+            public void onCancelled(GestureDescription gestureDescription) {
+                super.onCancelled(gestureDescription);
+                Log.d(TAG, "onCancelled");
+            }
+        }, null);
+
+    }
+
+    public static BHAccessibilityService service;
 }

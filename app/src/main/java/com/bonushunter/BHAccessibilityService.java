@@ -26,11 +26,19 @@ public class BHAccessibilityService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         int eventType = event.getEventType();
-        Log.d(TAG, "onAccessibilityEvent - event:" + event.toString());
+//        Log.d(TAG, "onAccessibilityEvent - event:" + event.toString());
+
+        if (Utils.service == null) {
+            Utils.service = this;
+        }
+
+//        getWindows().
 
 
 //        performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
 //         UiAutomation
+
+
 
         switch (eventType) {
             case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
