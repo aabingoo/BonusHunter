@@ -1,22 +1,31 @@
-package com.bonushunter.apps;
+package com.bonushunter.task;
 
 import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import com.bonushunter.apps.BaseAppRobot;
+
 import java.lang.ref.WeakReference;
-import java.util.logging.LogRecord;
 
-public abstract class BaseAppRobot implements IAppRobot {
+public abstract class BaseTask implements ITask {
 
-    public static final String TAG = BaseAppRobot.class.getSimpleName();
-
-    private WeakReference<Context> mContextRef;
+    public static final String TAG = BaseTask.class.getSimpleName();
 
     private Handler mUiHandler;
     private int mWaitSeconds;
 
     private Handler mWorkHandler;
+
+    public BaseTask(int waitSeconds) {
+        mUiHandler = new Handler();
+
+        HandlerThread handlerThread = new HandlerThread("app_work_thread");
+        handlerThread.start();
+        mWorkHandler = new Handler(handlerThread.getLooper());
+
+        mWaitSeconds = waitSeconds;
+    }
 
     private Runnable mTimerRunnable = new Runnable() {
         @Override
@@ -32,21 +41,15 @@ public abstract class BaseAppRobot implements IAppRobot {
     private Runnable mWorkRunnable = new Runnable() {
         @Override
         public void run() {
+            // start to calculate time
+            mUiHandler.post(mTimerRunnable);
+
+            // run the task
             doInBackground();
+
+            // perform next task
         }
     };
-
-    public BaseAppRobot(Context context) {
-        mContextRef = new WeakReference<>(context);
-        mUiHandler = new Handler();
-        HandlerThread handlerThread = new HandlerThread("app_work_thread");
-        handlerThread.start();
-        mWorkHandler = new Handler(handlerThread.getLooper());
-    }
-
-    protected Context getContext() {
-        return mContextRef.get();
-    }
 
     /**
      * should run at thread
@@ -58,7 +61,6 @@ public abstract class BaseAppRobot implements IAppRobot {
         Thread.sleep(seconds * 1000);
     }
 
-    @Override
     public void start() {
         mWorkHandler.post(mWorkRunnable);
     }

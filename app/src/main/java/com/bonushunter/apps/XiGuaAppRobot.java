@@ -3,7 +3,7 @@ package com.bonushunter.apps;
 import android.content.Context;
 import android.util.Log;
 
-import com.bonushunter.Utils;
+import com.bonushunter.utils.AppRobotUtils;
 
 public class XiGuaAppRobot extends BaseAppRobot {
 
@@ -16,14 +16,13 @@ public class XiGuaAppRobot extends BaseAppRobot {
 
 
     @Override
-    public void start() {
-
+    public void doInBackground() {
         try {
-            response("正在启动应用.");
+//            response("正在启动应用.");
             // Launch app
-//        Utils.launchApp();
+            AppRobotUtils.launchApp(getContext(), AppRobotUtils.PACKAGE_NAME_XIGUA);
 
-            Thread.sleep(5000);
+            waitSeconds(5);
 
             // click live tab
 
@@ -37,7 +36,10 @@ public class XiGuaAppRobot extends BaseAppRobot {
         } catch (Exception e) {
             Log.d(TAG, "Exception:" + e.toString());
         }
-
     }
 
+    @Override
+    public void updateRemainSeconds(int remainSeconds) {
+
+    }
 }

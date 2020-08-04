@@ -16,9 +16,8 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import com.bonushunter.apps.AppRobotFactory;
-import com.bonushunter.apps.IAppRobot;
-import com.bonushunter.manager.AppManager;
+import com.bonushunter.utils.AppRobotUtils;
+import com.bonushunter.utils.CommonUtils;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -165,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initAppList() {
-        Iterator iterator = AppManager.sSupportApps.entrySet().iterator();
+        Iterator iterator = AppRobotUtils.sSupportApps.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> entry = (Map.Entry<String, String>) iterator.next();
             String name = entry.getKey();
@@ -192,43 +191,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btn_start) {
-            if (TextUtils.isEmpty(mSelectedPkgName)) {
-                AlertDialog alertDialog = new AlertDialog.Builder(this)
-                        .setTitle("通知")
-                        .setMessage("请先选择一款应用进行启动")
-                        .setPositiveButton("知道了", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .create();
-                alertDialog.show();
-                alertDialog.setCanceledOnTouchOutside(false);
-            } else if (!Utils.isAccessibilityEnabled(this) ||
-                    !Utils.isAccessibilitySettingsOn(this,
-                            BHAccessibilityService.class.getCanonicalName())) {
-                // Check if enabled accessibility service
-
-                AlertDialog alertDialog = new AlertDialog.Builder(this)
-                        .setTitle("设置")
-                        .setMessage("启动赏金猎人需开启无障碍服务，请前往设置中打开赏金猎人的无障碍服务许可")
-                        .setNegativeButton("再考虑下", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .setPositiveButton("前往设置", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                            }
-                        })
-                        .create();
-                alertDialog.show();
-                alertDialog.setCanceledOnTouchOutside(false);
-            } else if (!Settings.canDrawOverlays(this)) {
+//            if (TextUtils.isEmpty(mSelectedPkgName)) {
+//                AlertDialog alertDialog = new AlertDialog.Builder(this)
+//                        .setTitle("通知")
+//                        .setMessage("请先选择一款应用进行启动")
+//                        .setPositiveButton("知道了", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                dialog.dismiss();
+//                            }
+//                        })
+//                        .create();
+//                alertDialog.show();
+//                alertDialog.setCanceledOnTouchOutside(false);
+//            } else if (!CommonUtils.isAccessibilityEnabled(this) ||
+//                    !CommonUtils.isAccessibilitySettingsOn(this,
+//                            BHAccessibilityService.class.getCanonicalName())) {
+//                // Check if enabled accessibility service
+//
+//                AlertDialog alertDialog = new AlertDialog.Builder(this)
+//                        .setTitle("设置")
+//                        .setMessage("启动赏金猎人需开启无障碍服务，请前往设置中打开赏金猎人的无障碍服务许可")
+//                        .setNegativeButton("再考虑下", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                dialog.dismiss();
+//                            }
+//                        })
+//                        .setPositiveButton("前往设置", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+//                            }
+//                        })
+//                        .create();
+//                alertDialog.show();
+//                alertDialog.setCanceledOnTouchOutside(false);
+//            } else
+                if (!Settings.canDrawOverlays(this)) {
                 // check float permission
                 AlertDialog alertDialog = new AlertDialog.Builder(this)
                         .setTitle("设置")
@@ -253,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 alertDialog.setCanceledOnTouchOutside(false);
             } else {
                 FloatWindow.getInstance(this).show();
-                Utils.launchApp(this, mSelectedPkgName);
+//                CommonUtils.launchApp(this, mSelectedPkgName);
 //                IAppRobot appRobot = AppRobotFactory.getAppRobot(mSelectedPkgName);
 //                appRobot.start();
             }

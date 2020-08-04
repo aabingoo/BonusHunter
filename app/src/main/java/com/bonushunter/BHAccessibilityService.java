@@ -1,20 +1,11 @@
 package com.bonushunter;
 
 import android.accessibilityservice.AccessibilityService;
-import android.app.Instrumentation;
-import android.app.Service;
-import android.app.UiAutomation;
 import android.content.Intent;
-import android.os.IBinder;
-import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
-import android.view.accessibility.AccessibilityWindowInfo;
 
 
-import java.util.List;
-
-import androidx.test.uiautomator.UiDevice;
+import com.bonushunter.utils.CommonUtils;
 
 public class BHAccessibilityService extends AccessibilityService {
     private static final String TAG = BHAccessibilityService.class.getSimpleName();
@@ -28,8 +19,8 @@ public class BHAccessibilityService extends AccessibilityService {
         int eventType = event.getEventType();
 //        Log.d(TAG, "onAccessibilityEvent - event:" + event.toString());
 
-        if (Utils.service == null) {
-            Utils.service = this;
+        if (CommonUtils.service == null) {
+            CommonUtils.service = this;
         }
 
 //        getWindows().

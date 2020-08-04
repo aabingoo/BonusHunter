@@ -1,8 +1,6 @@
-package com.bonushunter.apps;
+package com.bonushunter.task;
 
-public interface IAppRobot {
-
-    void start();
+public interface ITask {
 
     void doInBackground();
 

@@ -1,4 +1,4 @@
-package com.bonushunter;
+package com.bonushunter.utils;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
@@ -7,19 +7,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Path;
-import android.net.Uri;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.Toast;
 
+import com.bonushunter.BHAccessibilityService;
+
 import java.util.HashSet;
 import java.util.Set;
 
-public class Utils {
+public class CommonUtils {
 
-    private static final String TAG = Utils.class.getSimpleName();
+    private static final String TAG = CommonUtils.class.getSimpleName();
 
     public static boolean isAccessibilityEnabled(Context context) {
         AccessibilityManager accessibilityManager = (AccessibilityManager)
@@ -66,17 +67,6 @@ public class Utils {
 
     }
 
-    public static void launchApp(Context context, String pkgName) {
-        try {
-            PackageManager packageManager = context.getPackageManager();
-            Intent intent = packageManager.getLaunchIntentForPackage(pkgName);
-            context.startActivity(intent);
-        } catch (Exception e) {
-            Log.w(TAG, "Exception while startActivity:" + e.toString());
-            Toast.makeText(context, "请先安装该应用", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     public static void swipeUp(){
         Path path = new Path();
         path.moveTo(100, 2000);
@@ -87,7 +77,7 @@ public class Utils {
         GestureDescription description = new GestureDescription.Builder()
                 .addStroke(strokeDescription)
                 .build();
-        boolean ret = Utils.service.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
+        boolean ret = CommonUtils.service.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
             @Override
             public void onCompleted(GestureDescription gestureDescription) {
                 super.onCompleted(gestureDescription);
@@ -112,7 +102,7 @@ public class Utils {
         GestureDescription description = new GestureDescription.Builder()
                 .addStroke(strokeDescription)
                 .build();
-        boolean ret = Utils.service.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
+        boolean ret = CommonUtils.service.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
             @Override
             public void onCompleted(GestureDescription gestureDescription) {
                 super.onCompleted(gestureDescription);
