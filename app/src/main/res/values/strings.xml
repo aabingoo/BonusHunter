@@ -2,4 +2,7 @@
     <string name="app_name">赏金猎人</string>
 
     <string name="accessibility_service_description">自动获取赏金</string>
+
+    <string name="stop">停 止</string>
+    <string name="start">开 始</string>
 </resources>

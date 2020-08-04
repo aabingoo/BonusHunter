@@ -2,7 +2,6 @@ package com.bonushunter;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Build;
@@ -13,8 +12,10 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.bonushunter.manager.ScreenManager;
 import com.bonushunter.utils.CommonUtils;
 
 //import com.android.uiautomator.core.UiDevice;
@@ -29,7 +30,14 @@ public class FloatWindow implements View.OnTouchListener {
     private WindowManager.LayoutParams mLayoutParams;
     private View mFloatView;
 
+    private ImageView mExpend;
+    private TextView mStartBtn;
+    private TextView mTaskDesc;
+    private TextView mRemianTime;
+
     private static FloatWindow singleton;
+
+    private ScreenManager screenManager;
 
     private FloatWindow(Context context) {
         mContext = context;
@@ -57,6 +65,60 @@ public class FloatWindow implements View.OnTouchListener {
 
         mFloatView = LayoutInflater.from(mContext).inflate(R.layout.view_float, null);
         mFloatView.setOnTouchListener(this);
+        mExpend = mFloatView.findViewById(R.id.expend_btn);
+        mStartBtn = mFloatView.findViewById(R.id.start_btn);
+        mTaskDesc = mFloatView.findViewById(R.id.task_desc);
+        mRemianTime = mFloatView.findViewById(R.id.remain_time);
+        mExpend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int visibility = mStartBtn.getVisibility();
+                if (visibility == View.GONE) {
+                    mStartBtn.setVisibility(View.VISIBLE);
+                } else {
+                    mStartBtn.setVisibility(View.GONE);
+                }
+            }
+        });
+        mStartBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                enable = !enable;
+                if (enable) {
+                    mStartBtn.setText(R.string.stop);
+                } else {
+                    mStartBtn.setText(R.string.start);
+                }
+            }
+        });
+
+
+        screenManager =ScreenManager.getInstance(mContext);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true) {
+                    if (enable) {
+                        cnt += 1;
+                        Log.d(TAG, "cnt:" + cnt);
+                        if (cnt > 20) {
+                            ScreenManager.getInstance(mContext).screenSwipeDown();
+                            if (cnt == 35) {
+                                cnt = 0;
+                            }
+                        } else {
+                            ScreenManager.getInstance(mContext).screenSwipeUp();
+                        }
+                        try {
+                            Thread.sleep(15000);
+                        } catch (Exception e) {
+
+                        }
+                    }
+                }
+            }
+        }).start();
     }
 
     public static FloatWindow getInstance(Context context) {
@@ -84,31 +146,6 @@ public class FloatWindow implements View.OnTouchListener {
 
     public void show() {
 
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true) {
-                    if (enable && CommonUtils.service != null) {
-                        cnt += 1;
-                        Log.d(TAG, "cnt:" + cnt);
-                        if (cnt > 20) {
-                            CommonUtils.swipeDown();
-                            if (cnt == 35) {
-                                cnt = 0;
-                            }
-                        } else {
-                            CommonUtils.swipeUp();
-                        }
-                        try {
-                            Thread.sleep(15000);
-                        } catch (Exception e) {
-
-                        }
-                    }
-                }
-            }
-        }).start();
 
 //        Button button = new Button(mContext);
 //        button.setText("111");
@@ -170,6 +207,10 @@ public class FloatWindow implements View.OnTouchListener {
                 mLayoutParams.x += x - mPressX;
                 mLayoutParams.y += y - mPressY;
 
+                if (mLayoutParams.y < 96) {
+                    mLayoutParams.y = 96;
+                }
+
                 mPressX = x;
                 mPressY = y;
                 Log.d(TAG, "x,"+ x+ ",y,"+y);
@@ -181,5 +222,11 @@ public class FloatWindow implements View.OnTouchListener {
         return false;
     }
 
+    public void setRemianTime (int seconds) {
+        mRemianTime.setText(String.valueOf(seconds));
+    }
 
+    public void setTaskDesc(String desc) {
+        mTaskDesc.setText(desc);
+    }
 }

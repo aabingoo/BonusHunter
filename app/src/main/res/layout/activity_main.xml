@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:textSize="16sp"
-        android:text="请选择某一应用:"/>
+        android:text="请选择一款应用打开:"/>
 
     <RadioGroup
         android:id="@+id/rb_app_list"

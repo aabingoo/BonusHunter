@@ -24,14 +24,17 @@ public class AppRobotUtils {
         }
     };
 
-    public static void launchApp(Context context, String pkgName) {
+    public static boolean launchApp(Context context, String pkgName) {
+        boolean ret = false;
         try {
             PackageManager packageManager = context.getPackageManager();
             Intent intent = packageManager.getLaunchIntentForPackage(pkgName);
             context.startActivity(intent);
+            ret = true;
         } catch (Exception e) {
             Log.w(TAG, "Exception while startActivity:" + e.toString());
             Toast.makeText(context, "请先安装该应用", Toast.LENGTH_SHORT).show();
         }
+        return ret;
     }
 }

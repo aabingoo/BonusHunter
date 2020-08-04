@@ -5,4 +5,6 @@
     <color name="colorAccent">#03DAC5</color>
 
     <color name="float_bg">#60000000</color>
+    <color name="arrow_bg">#A0FFFFFF</color>
+    <color name="remain_time_bg">#A0FFFFFF</color>
 </resources>

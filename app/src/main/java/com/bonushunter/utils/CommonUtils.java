@@ -67,56 +67,7 @@ public class CommonUtils {
 
     }
 
-    public static void swipeUp(){
-        Path path = new Path();
-        path.moveTo(100, 2000);
-        path.lineTo(100, 300);
 
-        GestureDescription.StrokeDescription strokeDescription =
-                new GestureDescription.StrokeDescription(path, 0, 800);
-        GestureDescription description = new GestureDescription.Builder()
-                .addStroke(strokeDescription)
-                .build();
-        boolean ret = CommonUtils.service.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
-            @Override
-            public void onCompleted(GestureDescription gestureDescription) {
-                super.onCompleted(gestureDescription);
-                Log.d(TAG, "onCompleted");
-            }
-
-            @Override
-            public void onCancelled(GestureDescription gestureDescription) {
-                super.onCancelled(gestureDescription);
-                Log.d(TAG, "onCancelled");
-            }
-        }, null);
-    }
-
-    public static void swipeDown() {
-        Path path = new Path();
-        path.moveTo(100, 300);
-        path.lineTo(100, 2000);
-
-        GestureDescription.StrokeDescription strokeDescription =
-                new GestureDescription.StrokeDescription(path, 0, 800);
-        GestureDescription description = new GestureDescription.Builder()
-                .addStroke(strokeDescription)
-                .build();
-        boolean ret = CommonUtils.service.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
-            @Override
-            public void onCompleted(GestureDescription gestureDescription) {
-                super.onCompleted(gestureDescription);
-                Log.d(TAG, "onCompleted");
-            }
-
-            @Override
-            public void onCancelled(GestureDescription gestureDescription) {
-                super.onCancelled(gestureDescription);
-                Log.d(TAG, "onCancelled");
-            }
-        }, null);
-
-    }
 
     public static BHAccessibilityService service;
 }

@@ -7,15 +7,15 @@ import com.bonushunter.task.ITask;
 import com.bonushunter.task.LaunchAppTask;
 import com.bonushunter.utils.AppRobotUtils;
 
-public class XiGuaAppRobot extends BaseAppRobot {
+public class KuaiShouAppRobot extends BaseAppRobot {
 
     public static final String TAG = XiGuaAppRobot.class.getSimpleName();
 
     private ITask mStartTask;
 
-    public XiGuaAppRobot(Context context) {
+    public KuaiShouAppRobot(Context context) {
         super(context);
-        mStartTask = new LaunchAppTask(context, AppRobotUtils.PACKAGE_NAME_XIGUA, 5);
+        mStartTask = new LaunchAppTask(context, AppRobotUtils.PACKAGE_NAME_KUAISHOU, 5);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class XiGuaAppRobot extends BaseAppRobot {
         try {
 //            response("正在启动应用.");
             // Launch app
-            AppRobotUtils.launchApp(getContext(), AppRobotUtils.PACKAGE_NAME_XIGUA);
+            AppRobotUtils.launchApp(getContext(), AppRobotUtils.PACKAGE_NAME_KUAISHOU);
 
             waitSeconds(5);
 

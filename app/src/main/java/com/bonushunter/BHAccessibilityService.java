@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.view.accessibility.AccessibilityEvent;
 
 
+import com.bonushunter.manager.ScreenManager;
 import com.bonushunter.utils.CommonUtils;
 
 public class BHAccessibilityService extends AccessibilityService {
@@ -19,9 +20,7 @@ public class BHAccessibilityService extends AccessibilityService {
         int eventType = event.getEventType();
 //        Log.d(TAG, "onAccessibilityEvent - event:" + event.toString());
 
-        if (CommonUtils.service == null) {
-            CommonUtils.service = this;
-        }
+        ScreenManager.getInstance(this).setAccessibilityService(this);
 
 //        getWindows().
 

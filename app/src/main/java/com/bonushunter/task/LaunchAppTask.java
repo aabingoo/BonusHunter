@@ -2,26 +2,22 @@ package com.bonushunter.task;
 
 import android.content.Context;
 
+import com.bonushunter.FloatWindow;
 import com.bonushunter.utils.AppRobotUtils;
 
 public class LaunchAppTask extends BaseTask {
 
-    private Context mContext;
     private String mPkgName;
 
     public LaunchAppTask(Context context, String pkgName, int waitSeconds) {
-        super(waitSeconds);
-        mContext = context;
+        super(context, waitSeconds);
         mPkgName = pkgName;
     }
 
     @Override
     public void doInBackground() {
-        AppRobotUtils.launchApp(mContext, mPkgName);
-    }
-
-    @Override
-    public void updateRemainSeconds(int remainSeconds) {
-
+        if (AppRobotUtils.launchApp(mContext, mPkgName)) {
+            FloatWindow.getInstance(mContext).show();
+        }
     }
 }

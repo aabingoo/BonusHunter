@@ -1,8 +1,5 @@
 package com.bonushunter;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -16,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import com.bonushunter.apps.AppRobotFactory;
+import com.bonushunter.apps.IAppRobot;
 import com.bonushunter.utils.AppRobotUtils;
 import com.bonushunter.utils.CommonUtils;
 
@@ -23,6 +22,9 @@ import org.opencv.android.OpenCVLoader;
 
 import java.util.Iterator;
 import java.util.Map;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
@@ -191,43 +193,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btn_start) {
-//            if (TextUtils.isEmpty(mSelectedPkgName)) {
-//                AlertDialog alertDialog = new AlertDialog.Builder(this)
-//                        .setTitle("通知")
-//                        .setMessage("请先选择一款应用进行启动")
-//                        .setPositiveButton("知道了", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                dialog.dismiss();
-//                            }
-//                        })
-//                        .create();
-//                alertDialog.show();
-//                alertDialog.setCanceledOnTouchOutside(false);
-//            } else if (!CommonUtils.isAccessibilityEnabled(this) ||
-//                    !CommonUtils.isAccessibilitySettingsOn(this,
-//                            BHAccessibilityService.class.getCanonicalName())) {
-//                // Check if enabled accessibility service
-//
-//                AlertDialog alertDialog = new AlertDialog.Builder(this)
-//                        .setTitle("设置")
-//                        .setMessage("启动赏金猎人需开启无障碍服务，请前往设置中打开赏金猎人的无障碍服务许可")
-//                        .setNegativeButton("再考虑下", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                dialog.dismiss();
-//                            }
-//                        })
-//                        .setPositiveButton("前往设置", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-//                            }
-//                        })
-//                        .create();
-//                alertDialog.show();
-//                alertDialog.setCanceledOnTouchOutside(false);
-//            } else
+            if (TextUtils.isEmpty(mSelectedPkgName)) {
+                AlertDialog alertDialog = new AlertDialog.Builder(this)
+                        .setTitle("通知")
+                        .setMessage("请先选择一款应用进行启动")
+                        .setPositiveButton("知道了", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create();
+                alertDialog.show();
+                alertDialog.setCanceledOnTouchOutside(false);
+            } else
+            if (!CommonUtils.isAccessibilityEnabled(this) ||
+                    !CommonUtils.isAccessibilitySettingsOn(this,
+                            BHAccessibilityService.class.getCanonicalName())) {
+                // Check if enabled accessibility service
+
+                AlertDialog alertDialog = new AlertDialog.Builder(this)
+                        .setTitle("设置")
+                        .setMessage("启动赏金猎人需开启无障碍服务，请前往设置中打开赏金猎人的无障碍服务许可")
+                        .setNegativeButton("再考虑下", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setPositiveButton("前往设置", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+                            }
+                        })
+                        .create();
+                alertDialog.show();
+                alertDialog.setCanceledOnTouchOutside(false);
+            } else
                 if (!Settings.canDrawOverlays(this)) {
                 // check float permission
                 AlertDialog alertDialog = new AlertDialog.Builder(this)
@@ -252,16 +255,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 alertDialog.show();
                 alertDialog.setCanceledOnTouchOutside(false);
             } else {
-                FloatWindow.getInstance(this).show();
-//                CommonUtils.launchApp(this, mSelectedPkgName);
-//                IAppRobot appRobot = AppRobotFactory.getAppRobot(mSelectedPkgName);
-//                appRobot.start();
+                IAppRobot appRobot = AppRobotFactory.getAppRobot(this, mSelectedPkgName);
+                if (appRobot != null) {
+                    staticLoadCVLibraries();
+                    appRobot.start();
+                }
             }
         }
     }
 
-    //OpenCV库静态加载并初始化
-    private void staticLoadCVLibraries(){
+    private void staticLoadCVLibraries() {
         boolean load = OpenCVLoader.initDebug();
         if(load) {
             Log.d(TAG, "Open CV Libraries loaded...");

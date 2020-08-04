@@ -60,6 +60,6 @@ public abstract class BaseAppRobot implements IAppRobot {
 
     @Override
     public void start() {
-        mWorkHandler.post(mWorkRunnable);
+//        mWorkHandler.post(mWorkRunnable);
     }
 }
