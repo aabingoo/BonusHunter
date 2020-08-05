@@ -5,4 +5,8 @@
 
     <string name="stop">停 止</string>
     <string name="start">开 始</string>
+
+    <!--Task desc-->
+    <string name="desc_launching_app">"启动应用中"</string>
+    <string name="desc_find_view">"搜寻%s中"</string>
 </resources>

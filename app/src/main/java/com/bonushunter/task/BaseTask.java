@@ -15,8 +15,12 @@ public abstract class BaseTask implements ITask {
 
     private Handler mUiHandler;
     private int mWaitSeconds;
-
     private Handler mWorkHandler;
+
+    private ITask mPreviousTask;
+    private ITask mNextTask;
+
+    private volatile boolean mRunning = false;
 
     public BaseTask(Context context, int waitSeconds) {
         mContext = context;
@@ -47,10 +51,22 @@ public abstract class BaseTask implements ITask {
             // start to calculate time
             mUiHandler.post(mTimerRunnable);
 
-            // run the task
-            doInBackground();
+            boolean ret = doInBackground();
 
-            // perform next task
+            if (!mRunning) return;
+
+            // run the task
+            if (ret) {
+                // perform next task
+                if (mNextTask != null) {
+                    mNextTask.start();
+                }
+            } else {
+                // back to previous task
+                if (mPreviousTask != null) {
+                    mPreviousTask.start();
+                }
+            }
         }
     };
 
@@ -66,11 +82,27 @@ public abstract class BaseTask implements ITask {
 
     @Override
     public void start() {
+        mRunning = true;
         mWorkHandler.post(mWorkRunnable);
+    }
+
+    @Override
+    public void stop() {
+        mRunning = false;
     }
 
     @Override
     public void updateRemainSeconds(int remainSeconds) {
         FloatWindow.getInstance(mContext).setRemianTime(remainSeconds);
+    }
+
+    @Override
+    public void setPreviousTask(ITask previousTask) {
+        mPreviousTask = previousTask;
+    }
+
+    @Override
+    public void setNextTask(ITask nextTask) {
+        mNextTask = nextTask;
     }
 }

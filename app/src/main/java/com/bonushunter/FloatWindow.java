@@ -15,7 +15,10 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bonushunter.apps.IAppRobot;
 import com.bonushunter.manager.ScreenManager;
+import com.bonushunter.task.FindOneAndClickTask;
+import com.bonushunter.task.ITask;
 import com.bonushunter.utils.CommonUtils;
 
 //import com.android.uiautomator.core.UiDevice;
@@ -83,12 +86,22 @@ public class FloatWindow implements View.OnTouchListener {
         mStartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                enable = !enable;
-                if (enable) {
-                    mStartBtn.setText(R.string.stop);
-                } else {
-                    mStartBtn.setText(R.string.start);
-                }
+
+                Log.d(TAG, "start task");
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        FindOneAndClickTask task = new FindOneAndClickTask(mContext, 20);
+                        task.doInBackground();
+                    }
+                }).start();
+
+//                enable = !enable;
+//                if (enable) {
+//                    mStartBtn.setText(R.string.stop);
+//                } else {
+//                    mStartBtn.setText(R.string.start);
+//                }
             }
         });
 
@@ -186,6 +199,10 @@ public class FloatWindow implements View.OnTouchListener {
 //        button.setOnTouchListener(this);
 
         mWindowManager.addView(mFloatView, mLayoutParams);
+
+        if (mAppRobot != null) {
+            mAppRobot.start();
+        }
     }
 
     private int mPressX;
@@ -228,5 +245,10 @@ public class FloatWindow implements View.OnTouchListener {
 
     public void setTaskDesc(String desc) {
         mTaskDesc.setText(desc);
+    }
+
+    private IAppRobot mAppRobot;
+    public void setAppRobot(IAppRobot appRobot) {
+        mAppRobot = appRobot;
     }
 }

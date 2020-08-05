@@ -3,6 +3,7 @@ package com.bonushunter.task;
 import android.content.Context;
 
 import com.bonushunter.FloatWindow;
+import com.bonushunter.R;
 import com.bonushunter.utils.AppRobotUtils;
 
 public class LaunchAppTask extends BaseTask {
@@ -15,9 +16,13 @@ public class LaunchAppTask extends BaseTask {
     }
 
     @Override
-    public void doInBackground() {
-        if (AppRobotUtils.launchApp(mContext, mPkgName)) {
-            FloatWindow.getInstance(mContext).show();
-        }
+    public boolean doInBackground() {
+//        updateTaskDesc(mContext.getString(R.string.desc_launching_app));
+        return AppRobotUtils.launchApp(mContext, mPkgName);
+    }
+
+    @Override
+    public void updateTaskDesc(String desc) {
+        FloatWindow.getInstance(mContext).setTaskDesc(desc);
     }
 }

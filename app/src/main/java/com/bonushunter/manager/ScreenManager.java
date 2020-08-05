@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Path;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -11,6 +12,16 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import com.bonushunter.R;
+
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.imgproc.Imgproc;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class ScreenManager {
@@ -29,6 +40,11 @@ public class ScreenManager {
 
     private ScreenManager(Context context) {
         mContext = context;
+
+        boolean load = OpenCVLoader.initDebug();
+        if(load) {
+            Log.d(TAG, "OpenCV Libraries loaded...");
+        }
 
         // Get screen params
         WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
@@ -69,12 +85,62 @@ public class ScreenManager {
         }
     }
 
-    public void findView(Bitmap template) {
+    public Point findView(Bitmap templateBm) {
+        Bitmap xigua = BitmapFactory.decodeResource(mContext.getResources(),
+                R.drawable.xigua_home);
 
+        Mat source = new Mat();
+        org.opencv.android.Utils.bitmapToMat(xigua, source);
+        Mat template = new Mat();
+        org.opencv.android.Utils.bitmapToMat(templateBm, template);
+
+        Mat ret = Mat.zeros(source.rows() - template.rows() + 1,
+                source.cols() - template.cols() + 1, CvType.CV_32FC1);
+        Imgproc.matchTemplate(source, template, ret, Imgproc.TM_SQDIFF_NORMED);
+
+        Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
+        Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
+        Log.d(TAG, "findView - value:" + mlr.minVal);
+
+        if (mlr.minVal < 0) {
+            double scale = (double)source.width() / (double)mScreenWidth;
+            Point matchLoc = new Point((mlr.minLoc.x + template.width() / 2.0) / scale,
+                    (mlr.minLoc.y + template.height() / 2.0) / scale);
+            Log.d(TAG, "findView x:" + matchLoc.x + ", y:" + matchLoc.y +
+                    ", mScreenWidth:" + mScreenWidth + ", mScreenHeight:" + mScreenHeight +
+                    ", source.width():" + source.width() + ", source.height():" + source.height() +
+                    ", scale Width:" + mScreenWidth/source.width() + ", scale Height:" + mScreenHeight/source.height());
+            return matchLoc;
+        } else {
+            return null;
+        }
     }
 
-    public void tap() {
+    public void tap(int x, int y) {
+        if (mAccessibilityService == null) return;
+        Log.d(TAG, "tap - x:" + x + ", y:" + y);
 
+        Path path = new Path();
+        path.moveTo(x, y);
+
+        GestureDescription.StrokeDescription strokeDescription =
+                new GestureDescription.StrokeDescription(path, 0, 50);
+        GestureDescription description = new GestureDescription.Builder()
+                .addStroke(strokeDescription)
+                .build();
+        mAccessibilityService.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
+            @Override
+            public void onCompleted(GestureDescription gestureDescription) {
+                super.onCompleted(gestureDescription);
+                Log.d(TAG, "onCompleted");
+            }
+
+            @Override
+            public void onCancelled(GestureDescription gestureDescription) {
+                super.onCancelled(gestureDescription);
+                Log.d(TAG, "onCancelled");
+            }
+        }, null);
     }
 
     public void longPress() {
@@ -136,5 +202,7 @@ public class ScreenManager {
             }
         }, null);
     }
+
+//    private void dispatchTapGesture()
 
 }

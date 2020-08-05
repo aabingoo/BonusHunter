@@ -2,6 +2,8 @@ package com.bonushunter;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -15,11 +17,20 @@ import android.widget.RadioGroup;
 
 import com.bonushunter.apps.AppRobotFactory;
 import com.bonushunter.apps.IAppRobot;
+import com.bonushunter.task.FindOneAndClickTask;
 import com.bonushunter.utils.AppRobotUtils;
 import com.bonushunter.utils.CommonUtils;
 
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
+import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -68,14 +79,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //        staticLoadCVLibraries();
 //
-//
+//        staticLoadCVLibraries();
 //        mImageView = findViewById(R.id.img);
-//        String sdcardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-//        Log.d(TAG, "sdcardPath:" + sdcardPath);
-//
-//        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua);
+////        String sdcardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+////        Log.d(TAG, "sdcardPath:" + sdcardPath);
+////
+//        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_home);
 //        mImageView.setImageBitmap(xigua);
-//        final Bitmap fudai = BitmapFactory.decodeResource(getResources(), R.drawable.fudai);
+//        final Bitmap xigua_fudai = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_fudai);
 //
 //        new Thread(new Runnable() {
 //            @Override
@@ -83,12 +94,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                Mat source = new Mat();
 //                org.opencv.android.Utils.bitmapToMat(xigua, source);
 //                Mat temp = new Mat();
-//                org.opencv.android.Utils.bitmapToMat(fudai, temp);
+//                org.opencv.android.Utils.bitmapToMat(xigua_fudai, temp);
 //
-//                Mat ret = Mat.zeros(source.rows() - temp.rows() + 1, source.cols() - temp.cols() + 1, CvType.CV_32FC1);
+//                Mat ret = Mat.zeros(source.rows() - temp.rows() + 1,
+//                        source.cols() - temp.cols() + 1, CvType.CV_32FC1);
 //                Imgproc.matchTemplate(source, temp, ret, Imgproc.TM_SQDIFF_NORMED);
 //
-//
+
 //                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1, new Mat());
 //                Log.d(TAG, "r:" + ret.rows() + ", c:" + ret.cols());
 //                double limit = 0.1;
@@ -127,6 +139,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                }
 //
 //
+//                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
+//                Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
+//                Point matchLoc = mlr.minLoc;
+//                NumberFormat nf = NumberFormat.getInstance();
+//                nf.setMaximumFractionDigits(20);
+//                nf.setGroupingUsed(false);
+//                Log.d(TAG, "findView x:" + matchLoc.x + ", y:" + matchLoc.y + ", value:" + nf.format(mlr.minVal)
+//                        + ", ma:" + (mlr.minVal < 0));
+//                Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
+//                        temp.width(), temp.height()), new Scalar(100, 255, 0, 0), 5);
 //                org.opencv.android.Utils.matToBitmap(source, xigua);
 //                runOnUiThread(new Runnable() {
 //                    @Override
@@ -255,11 +277,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 alertDialog.show();
                 alertDialog.setCanceledOnTouchOutside(false);
             } else {
-                IAppRobot appRobot = AppRobotFactory.getAppRobot(this, mSelectedPkgName);
-                if (appRobot != null) {
-                    staticLoadCVLibraries();
-                    appRobot.start();
-                }
+                FloatWindow floatWindow = FloatWindow.getInstance(this);
+                floatWindow.setAppRobot(AppRobotFactory.getAppRobot(this, mSelectedPkgName));
+                floatWindow.show();
             }
         }
     }
