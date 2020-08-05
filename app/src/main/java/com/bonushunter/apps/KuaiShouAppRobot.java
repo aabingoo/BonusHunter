@@ -15,7 +15,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
     public KuaiShouAppRobot(Context context) {
         super(context);
-        mStartTask = new LaunchAppTask(context, AppRobotUtils.PACKAGE_NAME_KUAISHOU, 5);
+        mStartTask = new LaunchAppTask(context, AppRobotUtils.PACKAGE_NAME_KUAISHOU, 10);
     }
 
     @Override

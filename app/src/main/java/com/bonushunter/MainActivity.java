@@ -1,9 +1,11 @@
 package com.bonushunter;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -16,8 +18,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.bonushunter.apps.AppRobotFactory;
-import com.bonushunter.apps.IAppRobot;
-import com.bonushunter.task.FindOneAndClickTask;
+import com.bonushunter.manager.ScreenManager;
 import com.bonushunter.utils.AppRobotUtils;
 import com.bonushunter.utils.CommonUtils;
 
@@ -34,6 +35,7 @@ import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.Map;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -43,11 +45,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private static final int REQUEST_MEDIA_PROJECTION = 1;
+
     private ImageView mImageView;
 
     private RadioGroup mAppsRG;
     private Button mStartBtn;
     private String mSelectedPkgName;
+
+    private ScreenManager mScreenManager;
+    private MediaProjectionManager mMediaProjectionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +68,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initAppList();
         mAppsRG.setOnCheckedChangeListener(this);
         mStartBtn.setOnClickListener(this);
+
+        mImageView = findViewById(R.id.img);
+        mScreenManager = ScreenManager.getInstance(this);
+        mScreenManager.setFindView(new ScreenManager.IFindView() {
+            @Override
+            public void onFind(final Bitmap bitmap) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mImageView.setImageBitmap(bitmap);
+                    }
+                });
+            }
+        });
+
 
 
 
@@ -79,26 +101,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //        staticLoadCVLibraries();
 //
-//        staticLoadCVLibraries();
-//        mImageView = findViewById(R.id.img);
+        staticLoadCVLibraries();
+
 ////        String sdcardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
 ////        Log.d(TAG, "sdcardPath:" + sdcardPath);
 ////
-//        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_home);
-//        mImageView.setImageBitmap(xigua);
-//        final Bitmap xigua_fudai = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_fudai);
-//
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                Mat source = new Mat();
-//                org.opencv.android.Utils.bitmapToMat(xigua, source);
-//                Mat temp = new Mat();
-//                org.opencv.android.Utils.bitmapToMat(xigua_fudai, temp);
-//
-//                Mat ret = Mat.zeros(source.rows() - temp.rows() + 1,
-//                        source.cols() - temp.cols() + 1, CvType.CV_32FC1);
-//                Imgproc.matchTemplate(source, temp, ret, Imgproc.TM_SQDIFF_NORMED);
+        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_home);
+        mImageView.setImageBitmap(xigua);
+        final Bitmap xigua_fudai = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_live_tab);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Mat source = new Mat();
+                org.opencv.android.Utils.bitmapToMat(xigua, source);
+                Mat temp = new Mat();
+                org.opencv.android.Utils.bitmapToMat(xigua_fudai, temp);
+
+                Mat ret = Mat.zeros(source.rows() - temp.rows() + 1,
+                        source.cols() - temp.cols() + 1, CvType.CV_32FC1);
+                Imgproc.matchTemplate(source, temp, ret, Imgproc.TM_SQDIFF_NORMED);
 //
 
 //                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1, new Mat());
@@ -139,25 +161,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                }
 //
 //
-//                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
-//                Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
-//                Point matchLoc = mlr.minLoc;
-//                NumberFormat nf = NumberFormat.getInstance();
-//                nf.setMaximumFractionDigits(20);
-//                nf.setGroupingUsed(false);
-//                Log.d(TAG, "findView x:" + matchLoc.x + ", y:" + matchLoc.y + ", value:" + nf.format(mlr.minVal)
-//                        + ", ma:" + (mlr.minVal < 0));
-//                Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
-//                        temp.width(), temp.height()), new Scalar(100, 255, 0, 0), 5);
-//                org.opencv.android.Utils.matToBitmap(source, xigua);
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        mImageView.setImageBitmap(xigua);
-//                    }
-//                });
-//            }
-//        }).start();
+                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
+                Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
+                Point matchLoc = mlr.minLoc;
+                NumberFormat nf = NumberFormat.getInstance();
+                nf.setMaximumFractionDigits(20);
+                nf.setGroupingUsed(false);
+                Log.d(TAG, "findView x:" + matchLoc.x + ", y:" + matchLoc.y + ", value:" + nf.format(mlr.minVal)
+                        + ", ma:" + (mlr.minVal < 0));
+                Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
+                        temp.width(), temp.height()), new Scalar(100, 255, 0, 0), 5);
+                org.opencv.android.Utils.matToBitmap(source, xigua);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mImageView.setImageBitmap(xigua);
+                    }
+                });
+            }
+        }).start();
 
 
 
@@ -185,6 +207,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (!mScreenManager.canCaptureScreen()) {
+            mMediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+            startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_MEDIA_PROJECTION) {
+                mScreenManager.setMediaProjection(mMediaProjectionManager.getMediaProjection(resultCode, data));
+            }
+        }
     }
 
     private void initAppList() {
@@ -237,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 AlertDialog alertDialog = new AlertDialog.Builder(this)
                         .setTitle("设置")
                         .setMessage("启动赏金猎人需开启无障碍服务，请前往设置中打开赏金猎人的无障碍服务许可")
-                        .setNegativeButton("再考虑下", new DialogInterface.OnClickListener() {
+                        .setNegativeButton("稍等", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
@@ -258,7 +295,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 AlertDialog alertDialog = new AlertDialog.Builder(this)
                         .setTitle("设置")
                         .setMessage("启动赏金猎人需开启悬浮窗功能，请前往设置中打开赏金猎人的悬浮窗功能许可")
-                        .setNegativeButton("再考虑下", new DialogInterface.OnClickListener() {
+                        .setNegativeButton("稍等", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
@@ -276,10 +313,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .create();
                 alertDialog.show();
                 alertDialog.setCanceledOnTouchOutside(false);
+            } else if (!mScreenManager.canCaptureScreen()) {
+                mMediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+                startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION);
             } else {
-                FloatWindow floatWindow = FloatWindow.getInstance(this);
-                floatWindow.setAppRobot(AppRobotFactory.getAppRobot(this, mSelectedPkgName));
-                floatWindow.show();
+//                FloatWindow floatWindow = FloatWindow.getInstance(this);
+//                floatWindow.setAppRobot(AppRobotFactory.getAppRobot(this, mSelectedPkgName));
+//                floatWindow.show();
             }
         }
     }

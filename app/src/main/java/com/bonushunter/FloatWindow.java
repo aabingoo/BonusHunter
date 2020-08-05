@@ -1,11 +1,8 @@
 package com.bonushunter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.net.Uri;
 import android.os.Build;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -17,11 +14,6 @@ import android.widget.TextView;
 
 import com.bonushunter.apps.IAppRobot;
 import com.bonushunter.manager.ScreenManager;
-import com.bonushunter.task.FindOneAndClickTask;
-import com.bonushunter.task.ITask;
-import com.bonushunter.utils.CommonUtils;
-
-//import com.android.uiautomator.core.UiDevice;
 
 public class FloatWindow implements View.OnTouchListener {
 
@@ -40,13 +32,12 @@ public class FloatWindow implements View.OnTouchListener {
 
     private static FloatWindow singleton;
 
-    private ScreenManager screenManager;
+    private ScreenManager mScreenManager;
 
     private FloatWindow(Context context) {
         mContext = context;
 
         mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-
         mLayoutParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mLayoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -64,7 +55,6 @@ public class FloatWindow implements View.OnTouchListener {
         mLayoutParams.gravity = Gravity.START | Gravity.TOP;
         mLayoutParams.x = 50;
         mLayoutParams.y = 100;
-
 
         mFloatView = LayoutInflater.from(mContext).inflate(R.layout.view_float, null);
         mFloatView.setOnTouchListener(this);
@@ -87,26 +77,25 @@ public class FloatWindow implements View.OnTouchListener {
             @Override
             public void onClick(View v) {
 
-                Log.d(TAG, "start task");
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        FindOneAndClickTask task = new FindOneAndClickTask(mContext, 20);
-                        task.doInBackground();
-                    }
-                }).start();
+//                Log.d(TAG, "start task");
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        FindOneAndClickTask task = new FindOneAndClickTask(mContext, 20);
+//                        task.doInBackground();
+//                    }
+//                }).start();
 
-//                enable = !enable;
-//                if (enable) {
-//                    mStartBtn.setText(R.string.stop);
-//                } else {
-//                    mStartBtn.setText(R.string.start);
-//                }
+                enable = !enable;
+                if (enable) {
+                    mStartBtn.setText(R.string.stop);
+                } else {
+                    mStartBtn.setText(R.string.start);
+                }
             }
         });
 
-
-        screenManager =ScreenManager.getInstance(mContext);
+        mScreenManager = ScreenManager.getInstance(mContext);
 
         new Thread(new Runnable() {
             @Override
@@ -145,62 +134,15 @@ public class FloatWindow implements View.OnTouchListener {
         return singleton;
     }
 
-    public void requestPermissionIfNeed() {
-        if (!Settings.canDrawOverlays(mContext)) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setData(Uri.parse("package:" + mContext.getPackageName()));
-            mContext.startActivity(intent);
-        }
-    }
-
     private int cnt = 0;
     private volatile boolean enable = false;
 
     public void show() {
-
-
-//        Button button = new Button(mContext);
-//        button.setText("111");
-//        button.setBackgroundColor(Color.BLUE);
-//        button.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                enable = !enable;
-//
-////                enable = !enable;
-////                Log.d(TAG, "enable:" + enable);
-////
-//////                UiDevice uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-//////                uiDevice.pressHome();
-//////                UiDevice.getInstance().pressHome();
-////                if (Utils.service != null) {
-////                    Log.d(TAG, "22222");
-////
-//////                    Log.d(TAG, "return:" + ret);
-////
-////
-//////                    for (AccessibilityWindowInfo windowInfo: Utils.service.getWindows()) {
-//////                        Log.d(TAG, "window:" + windowInfo.toString());
-//////                        if (windowInfo.getType() == AccessibilityWindowInfo.TYPE_APPLICATION) {
-//////                            windowInfo.getRoot().performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
-//////                            windowInfo.getRoot().performAction(AccessibilityNodeInfo.ACTION_CLICK);
-//////                            try {
-//////
-//////                            } catch (Exception e) {
-//////
-//////                            }
-//////                        }
-//////                    }
-////
-////                }
-//            }
-//        });
-//        button.setOnTouchListener(this);
-
+        // show float window
         mWindowManager.addView(mFloatView, mLayoutParams);
-
+        // start task
         if (mAppRobot != null) {
+            mScreenManager.startCapture();
             mAppRobot.start();
         }
     }
@@ -230,7 +172,6 @@ public class FloatWindow implements View.OnTouchListener {
 
                 mPressX = x;
                 mPressY = y;
-                Log.d(TAG, "x,"+ x+ ",y,"+y);
 
                 mWindowManager.updateViewLayout(v, mLayoutParams);
                 break;

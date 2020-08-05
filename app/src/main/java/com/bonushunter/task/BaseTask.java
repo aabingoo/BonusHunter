@@ -4,8 +4,11 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.util.Log;
 
 import com.bonushunter.FloatWindow;
+
+import java.util.concurrent.CountDownLatch;
 
 public abstract class BaseTask implements ITask {
 
@@ -20,6 +23,8 @@ public abstract class BaseTask implements ITask {
     private ITask mPreviousTask;
     private ITask mNextTask;
 
+    private CountDownLatch mCountDownLatch;
+
     private volatile boolean mRunning = false;
 
     public BaseTask(Context context, int waitSeconds) {
@@ -32,12 +37,15 @@ public abstract class BaseTask implements ITask {
         mWorkHandler = new Handler(handlerThread.getLooper());
 
         mWaitSeconds = waitSeconds;
+
+        mCountDownLatch = new CountDownLatch(mWaitSeconds + 1);
     }
 
     private Runnable mTimerRunnable = new Runnable() {
         @Override
         public void run() {
             updateRemainSeconds(mWaitSeconds);
+            mCountDownLatch.countDown();
             if (mWaitSeconds > 0) {
                 mWaitSeconds -= 1;
                 mUiHandler.postDelayed(this, 1000);
@@ -55,6 +63,11 @@ public abstract class BaseTask implements ITask {
 
             if (!mRunning) return;
 
+            try {
+                mCountDownLatch.await();
+            } catch (Exception e) {
+                Log.d(TAG, "CountDownLatch await error:" + e.toString());
+            }
             // run the task
             if (ret) {
                 // perform next task
