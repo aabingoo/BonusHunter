@@ -101,26 +101,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //        staticLoadCVLibraries();
 //
-        staticLoadCVLibraries();
+//        staticLoadCVLibraries();
 
 ////        String sdcardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
 ////        Log.d(TAG, "sdcardPath:" + sdcardPath);
 ////
-        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_home);
-        mImageView.setImageBitmap(xigua);
-        final Bitmap xigua_fudai = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_live_tab);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Mat source = new Mat();
-                org.opencv.android.Utils.bitmapToMat(xigua, source);
-                Mat temp = new Mat();
-                org.opencv.android.Utils.bitmapToMat(xigua_fudai, temp);
-
-                Mat ret = Mat.zeros(source.rows() - temp.rows() + 1,
-                        source.cols() - temp.cols() + 1, CvType.CV_32FC1);
-                Imgproc.matchTemplate(source, temp, ret, Imgproc.TM_SQDIFF_NORMED);
+//        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_home);
+//        mImageView.setImageBitmap(xigua);
+//        final Bitmap xigua_fudai = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_live_tab);
+//
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Mat source = new Mat();
+//                org.opencv.android.Utils.bitmapToMat(xigua, source);
+//                Mat temp = new Mat();
+//                org.opencv.android.Utils.bitmapToMat(xigua_fudai, temp);
+//
+//                Mat ret = Mat.zeros(source.rows() - temp.rows() + 1,
+//                        source.cols() - temp.cols() + 1, CvType.CV_32FC1);
+//                Imgproc.matchTemplate(source, temp, ret, Imgproc.TM_SQDIFF_NORMED);
 //
 
 //                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1, new Mat());
@@ -161,25 +161,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                }
 //
 //
-                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
-                Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
-                Point matchLoc = mlr.minLoc;
-                NumberFormat nf = NumberFormat.getInstance();
-                nf.setMaximumFractionDigits(20);
-                nf.setGroupingUsed(false);
-                Log.d(TAG, "findView x:" + matchLoc.x + ", y:" + matchLoc.y + ", value:" + nf.format(mlr.minVal)
-                        + ", ma:" + (mlr.minVal < 0));
-                Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
-                        temp.width(), temp.height()), new Scalar(100, 255, 0, 0), 5);
-                org.opencv.android.Utils.matToBitmap(source, xigua);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mImageView.setImageBitmap(xigua);
-                    }
-                });
-            }
-        }).start();
+//                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
+//                Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
+//                Point matchLoc = mlr.minLoc;
+//                NumberFormat nf = NumberFormat.getInstance();
+//                nf.setMaximumFractionDigits(20);
+//                nf.setGroupingUsed(false);
+//                Log.d(TAG, "findView x:" + matchLoc.x + ", y:" + matchLoc.y + ", value:" + nf.format(mlr.minVal)
+//                        + ", ma:" + (mlr.minVal < 0));
+//                Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
+//                        temp.width(), temp.height()), new Scalar(100, 255, 0, 0), 5);
+//                org.opencv.android.Utils.matToBitmap(source, xigua);
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        mImageView.setImageBitmap(xigua);
+//                    }
+//                });
+//            }
+//        }).start();
 
 
 
@@ -317,9 +317,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mMediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
                 startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION);
             } else {
-//                FloatWindow floatWindow = FloatWindow.getInstance(this);
-//                floatWindow.setAppRobot(AppRobotFactory.getAppRobot(this, mSelectedPkgName));
-//                floatWindow.show();
+                FloatWindow floatWindow = FloatWindow.getInstance(this);
+                floatWindow.setAppRobot(AppRobotFactory.getAppRobot(this, mSelectedPkgName));
+                floatWindow.show();
             }
         }
     }

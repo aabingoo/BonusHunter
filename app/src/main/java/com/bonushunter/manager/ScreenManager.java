@@ -5,6 +5,7 @@ import android.accessibilityservice.GestureDescription;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
@@ -14,6 +15,7 @@ import android.hardware.display.VirtualDisplay;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.DisplayMetrics;
@@ -27,14 +29,27 @@ import com.bonushunter.R;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
+import org.opencv.core.DMatch;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfDMatch;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.features2d.BFMatcher;
+import org.opencv.features2d.DescriptorMatcher;
+import org.opencv.features2d.FastFeatureDetector;
+import org.opencv.features2d.Features2d;
+import org.opencv.features2d.FlannBasedMatcher;
+import org.opencv.features2d.ORB;
+import org.opencv.features2d.SIFT;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -111,54 +126,136 @@ public class ScreenManager {
 
     public Point findView(Bitmap templateBm) {
         Point tapPoint = null;
-//        Image image = mImageReader.acquireLatestImage();
-//        if (image != null) {
-//            Image.Plane[] planes = image.getPlanes();
-//            mByteBuffer = planes[0].getBuffer();
-//            int pixelStride = planes[0].getPixelStride();
-//            int rowStride = planes[0].getRowStride();
-//            int rowPadding = rowStride - pixelStride * mScreenWidth;
-//            Bitmap screenBitmap = Bitmap.createBitmap(mScreenWidth + rowPadding / pixelStride,
-//                                mScreenHeight, Bitmap.Config.ARGB_8888);
-//            screenBitmap.copyPixelsFromBuffer(mByteBuffer);
-//            image.close();
+        Image image = mImageReader.acquireLatestImage();
+        if (image != null) {
+            Image.Plane[] planes = image.getPlanes();
+            mByteBuffer = planes[0].getBuffer();
+            int pixelStride = planes[0].getPixelStride();
+            int rowStride = planes[0].getRowStride();
+            int rowPadding = rowStride - pixelStride * mScreenWidth;
+            Bitmap screenBitmap = Bitmap.createBitmap(mScreenWidth + rowPadding / pixelStride,
+                                mScreenHeight, Bitmap.Config.ARGB_8888);
+            screenBitmap.copyPixelsFromBuffer(mByteBuffer); //1440,2560
+            image.close();
+            screenBitmap = Bitmap.createBitmap(screenBitmap, 0, mScreenHeight/2, mScreenWidth, mScreenHeight);
 
-            Bitmap screenBitmap = BitmapFactory.decodeResource(mContext.getResources(),
-                    R.drawable.xigua_home);
+//            Bitmap
+//            String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/xigua_home.png";
+//            Bitmap screenBitmap = BitmapFactory.decodeFile(path).copy(Bitmap.Config.ARGB_8888, true);
+
+
+//            int bmWidth = screenBitmap.getWidth();
+//            int bmHeight = screenBitmap.getHeight();
+//            if (bmWidth != 1440 || bmHeight != 2560) {
+//                float scaleWidth = 1440f / bmWidth;
+//                float scaleHeight = 2560f / bmHeight;
+//                Matrix matrix = new Matrix();
+//                matrix.postScale(scaleWidth, scaleHeight);
+//                Log.d(TAG, "screenBitmap.getWidth():" + screenBitmap.getWidth()
+//                        + ", screenBitmap.getHeight():" + screenBitmap.getHeight()
+//                        + ", scaleWidth:" + scaleWidth
+//                        + ", scaleHeight:" + scaleHeight);
+//                screenBitmap = Bitmap.createBitmap(screenBitmap, 0, 0, bmWidth, bmHeight, matrix, true);
+//            }
+
+            Log.d(TAG, "screenBitmap.getWidth():" + screenBitmap.getWidth()
+                    + ", screenBitmap.getHeight():" + screenBitmap.getHeight()
+                    + ", templateBm.getWidth():" + templateBm.getWidth()
+                    + ", templateBm.getHeight():" + templateBm.getHeight());
 
             Mat source = new Mat();
             org.opencv.android.Utils.bitmapToMat(screenBitmap, source);
             Mat template = new Mat();
-            org.opencv.android.Utils.bitmapToMat(templateBm, template);
+            org.opencv.android.Utils.bitmapToMat(templateBm, template, true);
 
-            Mat ret = Mat.zeros(source.rows() - template.rows() + 1,
-                    source.cols() - template.cols() + 1, CvType.CV_32FC1);
-            Imgproc.matchTemplate(source, template, ret, Imgproc.TM_SQDIFF_NORMED);
+//            Mat ret = Mat.zeros(source.rows() - template.rows() + 1,
+//                    source.cols() - template.cols() + 1, CvType.CV_32FC1);
+//            Imgproc.matchTemplate(source, template, ret, Imgproc.TM_SQDIFF_NORMED);
+//
+//            Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
+//            Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
 
-            Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
-            Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
+//            Point matchLoc = mlr.minLoc;
+//            Log.d(TAG, "findView - value:" + mlr.minVal + ", x:" + mlr.minLoc.x + ", y:" + mlr.minLoc.y
+//                    + ", template.width():" + template.width() + ", template.height():" + template.height());
 
-            Point matchLoc = mlr.minLoc;
-            Log.d(TAG, "findView - value:" + mlr.minVal + ", x:" + mlr.minLoc.x + ", y:" + mlr.minLoc.y);
-            Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
-                    template.width(), template.height()), new Scalar(100, 100, 100), 5);
+//            Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
+//                    template.width(), template.height()), new Scalar(0, 0, 0, 255), 10);
+
+
+
+//            org.opencv.android.Utils.matToBitmap(finViewBySurf(null, template), templateBm);
+            List<Point> matchPoints = finViewBySurf(source, template);
+            for (Point p: matchPoints) {
+                Imgproc.drawMarker(source, p, new Scalar(0, 255, 0, 255), 20);
+            }
+
             org.opencv.android.Utils.matToBitmap(source, screenBitmap);
 
             if (mFindView != null) {
                 mFindView.onFind(screenBitmap);
             }
 
-            if (mlr.minVal < 0) {
-                double scale = (double)source.width() / (double)mScreenWidth;
-                tapPoint = new Point((mlr.minLoc.x + template.width() / 2.0) / scale,
-                        (mlr.minLoc.y + template.height() / 2.0) / scale);
-                Log.d(TAG, "findView x:" + tapPoint.x + ", y:" + tapPoint.y +
-                        ", mScreenWidth:" + mScreenWidth + ", mScreenHeight:" + mScreenHeight +
-                        ", source.width():" + source.width() + ", source.height():" + source.height() +
-                        ", scale Width:" + mScreenWidth/source.width() + ", scale Height:" + mScreenHeight/source.height());
-            }
-//        }
+//            if (mlr.minVal < 0) {
+//                double scale = (double)source.width() / (double)mScreenWidth;
+//                tapPoint = new Point((mlr.minLoc.x + template.width() / 2.0) / scale,
+//                        (mlr.minLoc.y + template.height() / 2.0) / scale);
+//                Log.d(TAG, "findView x:" + tapPoint.x + ", y:" + tapPoint.y +
+//                        ", mScreenWidth:" + mScreenWidth + ", mScreenHeight:" + mScreenHeight +
+//                        ", source.width():" + source.width() + ", source.height():" + source.height() +
+//                        ", scale Width:" + mScreenWidth/source.width() + ", scale Height:" + mScreenHeight/source.height());
+//            }
+        }
         return tapPoint;
+    }
+
+    public List<Point> finViewBySurf(Mat sourceImage, Mat templateImage) {
+        MatOfKeyPoint templateKeyPoints = new MatOfKeyPoint();
+        MatOfKeyPoint sourceKeyPoints = new MatOfKeyPoint();
+        Mat templateDescriptor = new Mat();
+        Mat sourceDescriptor = new Mat();
+
+        FastFeatureDetector fastFeatureDetector = FastFeatureDetector.create();
+        SIFT sift = SIFT.create();
+        ORB orb = ORB.create();
+
+        fastFeatureDetector.detect(templateImage, templateKeyPoints);
+        fastFeatureDetector.detect(sourceImage, sourceKeyPoints);
+//        Mat outImage = new Mat();
+//        Features2d.drawKeypoints(templateImage, templateKeyPoints, outImage, new Scalar(0, 255, 0, 255));
+
+        sift.compute(templateImage, templateKeyPoints, templateDescriptor);
+        sift.compute(sourceImage, sourceKeyPoints, sourceDescriptor);
+
+        List<MatOfDMatch> matOfDMatches = new ArrayList<>();
+        MatOfDMatch matOfDMatch = new MatOfDMatch();
+
+        FlannBasedMatcher flannBasedMatcher = FlannBasedMatcher.create();
+        flannBasedMatcher.match(templateDescriptor, sourceDescriptor, matOfDMatch);
+//        flannBasedMatcher.knnMatch(templateDescriptor, sourceDescriptor, matOfDMatches, 2);
+
+        BFMatcher bfMatcher = BFMatcher.create();
+//        bfMatcher.match(templateDescriptor, sourceDescriptor, matOfDMatch);
+
+        DMatch[] dMatchs = matOfDMatch.toArray();
+        KeyPoint[] keyPoints = sourceKeyPoints.toArray();
+        List<Point> matchPoints = new ArrayList<>();
+        for (int i = 0; i < dMatchs.length; i++) {
+            Log.d(TAG, "i:" + i + ", distance:" + dMatchs[i].distance
+                    + ", x:" + keyPoints[dMatchs[i].trainIdx].pt.x
+                    + ", y:" + keyPoints[dMatchs[i].trainIdx].pt.y);
+//            if (dMatchs[i].distance < 100) {
+                matchPoints.add(new Point(keyPoints[dMatchs[i].trainIdx].pt.x, keyPoints[dMatchs[i].trainIdx].pt.y));
+//            }
+        }
+
+        return matchPoints;
+
+
+
+//        DescriptorMatcher descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
+//        descriptorMatcher.knnMatch();
+//        return outImage;
     }
 
     public void tap(int x, int y) {

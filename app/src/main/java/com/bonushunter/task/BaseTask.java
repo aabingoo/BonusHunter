@@ -118,4 +118,14 @@ public abstract class BaseTask implements ITask {
     public void setNextTask(ITask nextTask) {
         mNextTask = nextTask;
     }
+
+    @Override
+    public void updateTaskDesc(final String desc) {
+        mUiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                FloatWindow.getInstance(mContext).setTaskDesc(desc);
+            }
+        });
+    }
 }

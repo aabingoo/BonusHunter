@@ -20,9 +20,4 @@ public class LaunchAppTask extends BaseTask {
 //        updateTaskDesc(mContext.getString(R.string.desc_launching_app));
         return AppRobotUtils.launchApp(mContext, mPkgName);
     }
-
-    @Override
-    public void updateTaskDesc(String desc) {
-        FloatWindow.getInstance(mContext).setTaskDesc(desc);
-    }
 }
