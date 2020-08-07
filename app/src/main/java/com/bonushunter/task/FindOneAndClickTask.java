@@ -32,16 +32,16 @@ public class FindOneAndClickTask extends BaseTask {
 //                R.drawable.xigua_live_tab)
 //                .copy(Bitmap.Config.ARGB_8888, true);
 
-        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/xigua_live_tab.jpeg";
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/xigua_live_tab.png";
         Log.d(TAG, "path:" + path + ", e:" + new File(path).exists());
         Bitmap liveTabBm2 = BitmapFactory.decodeFile(path).copy(Bitmap.Config.ARGB_8888, true);
 
         ScreenManager screenManager = ScreenManager.getInstance(mContext);
-        Point tapPoint = screenManager.findView(liveTabBm2);
+        Point tapPoint = screenManager.findViewByFastKnn(liveTabBm2);
         Log.d(TAG, "find point:" + (tapPoint != null));
         if (tapPoint != null) {
-            // find
-//            screenManager.tap((int)tapPoint.x, (int)tapPoint.y);
+            //find
+            screenManager.tap((int)tapPoint.x, (int)tapPoint.y);
         }
         return false;
     }
