@@ -12,36 +12,34 @@ import com.bonushunter.manager.ScreenManager;
 
 import org.opencv.core.Point;
 
-import java.io.File;
-
 public class FindOneAndClickTask extends BaseTask {
 
     public static final String TAG = FindOneAndClickTask.class.getSimpleName();
 
-    public FindOneAndClickTask(Context context, int waitSeconds) {
+    private String mTitle;
+    private String mTemplateImgPath;
+
+    public FindOneAndClickTask(Context context, int waitSeconds, String title, String path) {
         super(context, waitSeconds);
+        mTitle = title;
+        mTemplateImgPath = path;
     }
 
     @Override
     public boolean doInBackground() {
 
-//        String format = mContext.getString(R.string.desc_find_view);
-//        FloatWindow.getInstance(mContext).setTaskDesc(String.format(format, "直播"));
+        String format = mContext.getString(R.string.desc_find_view);
+        FloatWindow.getInstance(mContext).setTaskDesc(String.format(format, mTitle));
 
-//        Bitmap liveTabBm = BitmapFactory.decodeResource(mContext.getResources(),
-//                R.drawable.xigua_live_tab)
-//                .copy(Bitmap.Config.ARGB_8888, true);
-
-        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/xigua_live_tab.png";
-        Log.d(TAG, "path:" + path + ", e:" + new File(path).exists());
-        Bitmap liveTabBm2 = BitmapFactory.decodeFile(path).copy(Bitmap.Config.ARGB_8888, true);
+        Bitmap bitmap = BitmapFactory.decodeFile(mTemplateImgPath).copy(Bitmap.Config.ARGB_8888, true);
 
         ScreenManager screenManager = ScreenManager.getInstance(mContext);
-        Point tapPoint = screenManager.findViewByFastKnn(liveTabBm2);
+        Point tapPoint = screenManager.findViewByFAST(bitmap);
         Log.d(TAG, "find point:" + (tapPoint != null));
         if (tapPoint != null) {
             //find
             screenManager.tap((int)tapPoint.x, (int)tapPoint.y);
+            return true;
         }
         return false;
     }

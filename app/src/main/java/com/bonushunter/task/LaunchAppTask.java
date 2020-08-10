@@ -17,7 +17,7 @@ public class LaunchAppTask extends BaseTask {
 
     @Override
     public boolean doInBackground() {
-//        updateTaskDesc(mContext.getString(R.string.desc_launching_app));
+        updateTaskDesc(mContext.getString(R.string.desc_launching_app));
         return AppRobotUtils.launchApp(mContext, mPkgName);
     }
 }

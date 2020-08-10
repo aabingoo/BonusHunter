@@ -15,6 +15,7 @@ public class AppRobotUtils {
 
     public static final String PACKAGE_NAME_XIGUA = "com.ss.android.article.video";
     public static final String PACKAGE_NAME_KUAISHOU = "com.kuaishou.nebula";
+    public static final String PACKAGE_NAME_DOUYIN = "com.ss.android.ugc.aweme.lite";
 
 
     public static Map<String, String> sSupportApps = new HashMap<String, String>() {

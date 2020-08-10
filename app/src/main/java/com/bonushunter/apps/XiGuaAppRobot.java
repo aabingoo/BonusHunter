@@ -1,7 +1,7 @@
 package com.bonushunter.apps;
 
 import android.content.Context;
-import android.util.Log;
+import android.os.Environment;
 
 import com.bonushunter.task.FindOneAndClickTask;
 import com.bonushunter.task.ITask;
@@ -13,13 +13,29 @@ public class XiGuaAppRobot extends BaseAppRobot {
     public static final String TAG = XiGuaAppRobot.class.getSimpleName();
 
     private ITask mStartTask;
-    private ITask mSelectLiveTabTask;
+    private ITask mSelectLiveNavTask;
+    private ITask mSelectLiveCategoryTask;
+    private ITask mEnterFudaiLiveRoomTask;
 
     public XiGuaAppRobot(Context context) {
         super(context);
-        mStartTask = new LaunchAppTask(context, AppRobotUtils.PACKAGE_NAME_XIGUA, 10);
-        mSelectLiveTabTask = new FindOneAndClickTask(context, 30);
-        mStartTask.setNextTask(mSelectLiveTabTask);
+
+        mStartTask = new LaunchAppTask(context, AppRobotUtils.PACKAGE_NAME_XIGUA, 15);
+        String liveNavPath = Environment.getExternalStorageDirectory().getAbsolutePath()
+                + "/xigua/xigua_zhibo.png";
+        mSelectLiveNavTask = new FindOneAndClickTask(context, 20, "直播", liveNavPath);
+        mStartTask.setNextTask(mSelectLiveNavTask);
+
+        String xiangyePath = Environment.getExternalStorageDirectory().getAbsolutePath()
+                + "/xigua/xigua_zhibo_xiangye.png";
+        mSelectLiveCategoryTask = new FindOneAndClickTask(context, 15, "乡野", xiangyePath);
+        mSelectLiveNavTask.setNextTask(mSelectLiveCategoryTask);
+
+        String fudaiPath = Environment.getExternalStorageDirectory().getAbsolutePath()
+                + "/xigua/xigua_fudai.png";
+        mEnterFudaiLiveRoomTask = new FindOneAndClickTask(context, 15, "福袋直播间", fudaiPath);
+        mSelectLiveCategoryTask.setNextTask(mEnterFudaiLiveRoomTask);
+
     }
 
     @Override

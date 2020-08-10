@@ -4,18 +4,13 @@ import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.DisplayMetrics;
@@ -23,34 +18,26 @@ import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-
-import com.bonushunter.R;
+import android.view.accessibility.AccessibilityWindowInfo;
 
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.DMatch;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.features2d.BFMatcher;
-import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FastFeatureDetector;
-import org.opencv.features2d.Features2d;
 import org.opencv.features2d.FlannBasedMatcher;
 import org.opencv.features2d.ORB;
 import org.opencv.features2d.SIFT;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -65,6 +52,7 @@ public class ScreenManager {
     private int mScreenWidth;
     private int mScreenHeight;
     private int mDpi;
+    private Handler mHandler;
 
     private AccessibilityService mAccessibilityService;
 
@@ -77,6 +65,10 @@ public class ScreenManager {
         if(load) {
             Log.d(TAG, "OpenCV Libraries loaded...");
         }
+
+        HandlerThread handlerThread = new HandlerThread("screen_thread");
+        handlerThread.start();
+        mHandler = new Handler(handlerThread.getLooper());
 
         // Get screen params
         WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
@@ -124,6 +116,47 @@ public class ScreenManager {
     public IFindView mFindView;
     public void setFindView(IFindView findView) {
         mFindView = findView;
+    }
+
+
+
+    public void findAndTapView(String text) {
+        Log.d(TAG, "screenSwipeUp:" + (mAccessibilityService == null) + ", y:" + mScreenHeight / 10);
+        if (mAccessibilityService == null) return;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "window info:" + windowInfo.toString());
+            AccessibilityNodeInfo rootInfo = windowInfo.getRoot();
+            if (rootInfo != null) {
+                AccessibilityNodeInfo resultNode = loopNode(rootInfo, text);
+                if (resultNode != null) {
+                    Log.d(TAG, "result:" + resultNode.toString());
+                    resultNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                }
+            }
+        }
+    }
+
+    private AccessibilityNodeInfo loopNode(AccessibilityNodeInfo nodeInfo, String searchText) {
+
+        if (nodeInfo == null) return null;
+
+        int childCnt = nodeInfo.getChildCount();
+        if (childCnt == 0 && nodeInfo.getText() != null) {
+            if (searchText.equals(nodeInfo.getText().toString().trim())) {
+                return nodeInfo;
+            } else {
+                return null;
+            }
+        } else {
+            for (int i = 0; i < childCnt; i++) {
+                AccessibilityNodeInfo searchNode = loopNode(nodeInfo.getChild(i), searchText);
+                if (searchNode != null) {
+                    return searchNode;
+                }
+            }
+            return null;
+        }
     }
 
     public Point findView(Bitmap templateBm) {
@@ -523,44 +556,70 @@ public class ScreenManager {
 
     }
 
+    private boolean mSwipeBottom = false;
+
     public void screenSwipeUp(){
         Log.d(TAG, "screenSwipeUp:" + (mAccessibilityService == null) + ", y:" + mScreenHeight / 10);
         if (mAccessibilityService == null) return;
 
-        Path path = new Path();
-        path.moveTo(mScreenWidth/2, mScreenHeight / 100 * 88);
-        path.lineTo(mScreenWidth/2, mScreenHeight / 100 * 16);
-
-        GestureDescription.StrokeDescription strokeDescription =
-                new GestureDescription.StrokeDescription(path, 0, 600);
-        GestureDescription description = new GestureDescription.Builder()
-                .addStroke(strokeDescription)
-                .build();
-        mAccessibilityService.dispatchGesture(description, new AccessibilityService.GestureResultCallback() {
-            @Override
-            public void onCompleted(GestureDescription gestureDescription) {
-                super.onCompleted(gestureDescription);
-                Log.d(TAG, "onCompleted");
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "window info:" + windowInfo.toString());
+            if (windowInfo.getType() == AccessibilityWindowInfo.TYPE_SPLIT_SCREEN_DIVIDER) {
+                mSwipeBottom = true;
             }
+        }
 
-            @Override
-            public void onCancelled(GestureDescription gestureDescription) {
-                super.onCancelled(gestureDescription);
-                Log.d(TAG, "onCancelled");
-            }
-        }, null);
+        final int realHeight = mSwipeBottom ? mScreenHeight / 2 : mScreenHeight;
+        swipe(mScreenWidth / 2, realHeight / 4 * 3,
+                mScreenWidth / 2, 0);
+
+        if (mSwipeBottom) {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    swipe(mScreenWidth / 2, realHeight / 5 * 3 + realHeight,
+                            mScreenWidth / 2, 0);
+                    mSwipeBottom = false;
+                }
+            }, 1000);
+        }
     }
 
     public void screenSwipeDown() {
         Log.d(TAG, "screenSwipeDown:" + (mAccessibilityService == null) + ", y:" + mScreenHeight / 10);
         if (mAccessibilityService == null) return;
 
+        mSwipeBottom = false;
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "window info:" + windowInfo.toString());
+            if (windowInfo.getType() == AccessibilityWindowInfo.TYPE_SPLIT_SCREEN_DIVIDER) {
+                mSwipeBottom = true;
+            }
+        }
+
+        final int realHeight = mSwipeBottom ? mScreenHeight / 2 : mScreenHeight;
+        swipe(mScreenWidth/2, realHeight / 5 * 2,
+                mScreenWidth/2, mScreenHeight);
+
+        if (mSwipeBottom) {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    swipe(mScreenWidth / 2, realHeight / 5 * 2 + realHeight,
+                            mScreenWidth / 2, mScreenHeight);
+                    mSwipeBottom = false;
+                }
+            }, 800);
+        }
+    }
+
+    private void swipe(int startX, int startY, int endX, int endY) {
         Path path = new Path();
-        path.moveTo(mScreenWidth/2, mScreenHeight / 100 * 16);
-        path.lineTo(mScreenWidth/2, mScreenHeight / 100 * 88);
+        path.moveTo(startX, startY);
+        path.lineTo(endX, endY);
 
         GestureDescription.StrokeDescription strokeDescription =
-                new GestureDescription.StrokeDescription(path, 0, 600);
+                new GestureDescription.StrokeDescription(path, 0, 500);
         GestureDescription description = new GestureDescription.Builder()
                 .addStroke(strokeDescription)
                 .build();
@@ -568,7 +627,6 @@ public class ScreenManager {
             @Override
             public void onCompleted(GestureDescription gestureDescription) {
                 super.onCompleted(gestureDescription);
-                Log.d(TAG, "onCompleted");
             }
 
             @Override

@@ -86,11 +86,15 @@ public class FloatWindow implements View.OnTouchListener {
 //                    }
 //                }).start();
 
+//                mScreenManager.findAndTapView("关闭广告");
+
                 enable = !enable;
                 if (enable) {
                     mStartBtn.setText(R.string.stop);
+                    mScreenManager.findAndTapView("关闭广告");
                 } else {
                     mStartBtn.setText(R.string.start);
+                    mScreenManager.findAndTapView("福利");
                 }
             }
         });
@@ -104,9 +108,9 @@ public class FloatWindow implements View.OnTouchListener {
                     if (enable) {
                         cnt += 1;
                         Log.d(TAG, "cnt:" + cnt);
-                        if (cnt > 20) {
+                        if (cnt > 3) {
                             ScreenManager.getInstance(mContext).screenSwipeDown();
-                            if (cnt == 35) {
+                            if (cnt == 6) {
                                 cnt = 0;
                             }
                         } else {
