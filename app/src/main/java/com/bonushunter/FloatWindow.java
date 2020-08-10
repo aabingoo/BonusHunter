@@ -10,10 +10,17 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.bonushunter.apps.AppRobotFactory;
 import com.bonushunter.apps.IAppRobot;
 import com.bonushunter.manager.ScreenManager;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class FloatWindow implements View.OnTouchListener {
 
@@ -28,14 +35,23 @@ public class FloatWindow implements View.OnTouchListener {
     private ImageView mExpend;
     private TextView mStartBtn;
     private TextView mTaskDesc;
-    private TextView mRemianTime;
+    private TextView mRemainTime;
+    private LinearLayout mContent2;
+    private TextView mTaskDesc2;
+    private TextView mRemainTime2;
 
     private static FloatWindow singleton;
 
     private ScreenManager mScreenManager;
 
+    private CountDownLatch mStopLatch;
+
+    private boolean mShown = false;
+
     private FloatWindow(Context context) {
         mContext = context;
+
+        mScreenManager = ScreenManager.getInstance(mContext);
 
         mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         mLayoutParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT);
@@ -61,7 +77,11 @@ public class FloatWindow implements View.OnTouchListener {
         mExpend = mFloatView.findViewById(R.id.expend_btn);
         mStartBtn = mFloatView.findViewById(R.id.start_btn);
         mTaskDesc = mFloatView.findViewById(R.id.task_desc);
-        mRemianTime = mFloatView.findViewById(R.id.remain_time);
+        mRemainTime = mFloatView.findViewById(R.id.remain_time);
+        mContent2 = mFloatView.findViewById(R.id.content2);
+        mContent2.setVisibility(View.GONE);
+        mTaskDesc2 = mFloatView.findViewById(R.id.task_desc2);
+        mRemainTime2 = mFloatView.findViewById(R.id.remain_time2);
         mExpend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,55 +96,27 @@ public class FloatWindow implements View.OnTouchListener {
         mStartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-//                Log.d(TAG, "start task");
-//                new Thread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        FindOneAndClickTask task = new FindOneAndClickTask(mContext, 20);
-//                        task.doInBackground();
-//                    }
-//                }).start();
-
-//                mScreenManager.findAndTapView("关闭广告");
-
-                enable = !enable;
-                if (enable) {
-                    mStartBtn.setText(R.string.stop);
-                    mScreenManager.findAndTapView("关闭广告");
-                } else {
-                    mStartBtn.setText(R.string.start);
-                    mScreenManager.findAndTapView("福利");
-                }
-            }
-        });
-
-        mScreenManager = ScreenManager.getInstance(mContext);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true) {
-                    if (enable) {
-                        cnt += 1;
-                        Log.d(TAG, "cnt:" + cnt);
-                        if (cnt > 3) {
-                            ScreenManager.getInstance(mContext).screenSwipeDown();
-                            if (cnt == 6) {
-                                cnt = 0;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mShown) {
+                            mStopLatch = new CountDownLatch(mRunningApps.size());
+                            for (IAppRobot appRobot: mRunningApps) {
+                                appRobot.stop(mStopLatch);
                             }
-                        } else {
-                            ScreenManager.getInstance(mContext).screenSwipeUp();
-                        }
-                        try {
-                            Thread.sleep(15000);
-                        } catch (Exception e) {
-
+                            try {
+                                mStopLatch.await();
+                                mRunningApps.clear();
+                                mShown = false;
+                                mWindowManager.removeView(mFloatView);
+                            } catch (Exception e) {
+                                Log.d(TAG, "stop error:" + e.toString());
+                            }
                         }
                     }
-                }
+                }).start();
             }
-        }).start();
+        });
     }
 
     public static FloatWindow getInstance(Context context) {
@@ -138,16 +130,43 @@ public class FloatWindow implements View.OnTouchListener {
         return singleton;
     }
 
-    private int cnt = 0;
-    private volatile boolean enable = false;
-
-    public void show() {
-        // show float window
-        mWindowManager.addView(mFloatView, mLayoutParams);
-        // start task
-        if (mAppRobot != null) {
+    private void show() {
+        if (!mShown) {
+            mShown = true;
+            mRunningApps.clear();
+            // show float window
+            mWindowManager.addView(mFloatView, mLayoutParams);
+            // start screen capture
             mScreenManager.startCapture();
-            mAppRobot.start();
+        }
+    }
+
+    List<IAppRobot> mRunningApps = new ArrayList<>();
+
+    public void start(String packageName) {
+        show();
+
+        if (mRunningApps.size() == 0) {
+            mContent2.setVisibility(View.GONE);
+            // start task
+            IAppRobot appRobot = AppRobotFactory.getAppRobot(mContext, packageName);
+            appRobot.setDescAndRemainView(mTaskDesc, mRemainTime);
+            appRobot.start();
+            mRunningApps.add(appRobot);
+            Toast.makeText(mContext, "脚本启动成功", Toast.LENGTH_SHORT).show();
+        } else if (mRunningApps.size() == 1) {
+            if (mScreenManager.splitWindowEnabled()) {
+                mContent2.setVisibility(View.VISIBLE);
+                IAppRobot appRobot = AppRobotFactory.getAppRobot(mContext, packageName);
+                appRobot.setDescAndRemainView(mTaskDesc2, mRemainTime2);
+                appRobot.start();
+                mRunningApps.add(appRobot);
+                Toast.makeText(mContext, "脚本启动成功", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(mContext, "请先关闭正在运行的脚本再启动新的脚本", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(mContext, "请先关闭正在运行的脚本再启动新的脚本", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -185,7 +204,7 @@ public class FloatWindow implements View.OnTouchListener {
     }
 
     public void setRemianTime (int seconds) {
-        mRemianTime.setText(String.valueOf(seconds));
+        mRemainTime.setText(String.valueOf(seconds));
     }
 
     public void setTaskDesc(String desc) {

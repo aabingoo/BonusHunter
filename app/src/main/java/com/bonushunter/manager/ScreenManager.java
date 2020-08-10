@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.Image;
@@ -97,6 +98,18 @@ public class ScreenManager {
         mAccessibilityService = service;
     }
 
+    public boolean splitWindowEnabled() {
+        if (mAccessibilityService == null) return false;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "window info:" + windowInfo.toString());
+            if (windowInfo.getType() == AccessibilityWindowInfo.TYPE_SPLIT_SCREEN_DIVIDER) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void findView(String title) {
         if (mAccessibilityService != null) {
             AccessibilityNodeInfo windowNode = mAccessibilityService.getRootInActiveWindow();
@@ -118,23 +131,66 @@ public class ScreenManager {
         mFindView = findView;
     }
 
+    public void back() {
+        Log.d(TAG, "back:");
+        if (mAccessibilityService == null) return ;
 
+        mAccessibilityService.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+    }
 
-    public void findAndTapView(String text) {
-        Log.d(TAG, "screenSwipeUp:" + (mAccessibilityService == null) + ", y:" + mScreenHeight / 10);
-        if (mAccessibilityService == null) return;
+    public boolean tapViewById(String appTitle, String id) {
+        Log.d(TAG, "tapViewById:" + id);
+        if (mAccessibilityService == null) return false;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "tapViewById - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                AccessibilityNodeInfo rootNode = windowInfo.getRoot();
+                if (rootNode != null) {
+                    List<AccessibilityNodeInfo> targetNodes = rootNode.findAccessibilityNodeInfosByViewId(id);
+                    Log.d(TAG, "tapViewById - targetNodes:" + targetNodes.size());
+                    if (targetNodes != null && targetNodes.size() > 0) {
+                        AccessibilityNodeInfo targetNode = targetNodes.get(0);
+                        Log.d(TAG, "tapViewById - targetNodes:" + targetNode.toString());
+                        boolean clickRet = targetNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                        if (!clickRet) {
+                            Rect bound = new Rect();
+                            targetNode.getBoundsInScreen(bound);
+                            tap(bound.centerX(), bound.centerY());
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean tapViewByText(String text) {
+        Log.d(TAG, "tapViewByText:" + text);
+        if (mAccessibilityService == null) return false;
 
         for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
             Log.d(TAG, "window info:" + windowInfo.toString());
             AccessibilityNodeInfo rootInfo = windowInfo.getRoot();
             if (rootInfo != null) {
-                AccessibilityNodeInfo resultNode = loopNode(rootInfo, text);
-                if (resultNode != null) {
-                    Log.d(TAG, "result:" + resultNode.toString());
-                    resultNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                Log.d(TAG, "rootInfo info:" + rootInfo.toString());
+                AccessibilityNodeInfo targetNode = loopNode(rootInfo, text);
+                if (targetNode != null) {
+                    Log.d(TAG, "targetNode:" + targetNode.toString());
+                    boolean clickRet = targetNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    if (!clickRet) {
+                        Rect bound = new Rect();
+                        targetNode.getBoundsInScreen(bound);
+                        tap(bound.centerX(), bound.centerY());
+                        clickRet = true;
+                    }
+                    return clickRet;
                 }
             }
         }
+
+        return false;
     }
 
     private AccessibilityNodeInfo loopNode(AccessibilityNodeInfo nodeInfo, String searchText) {
@@ -556,6 +612,56 @@ public class ScreenManager {
 
     }
 
+    public void swipeUp(String appTitle) {
+        Log.d(TAG, "swipeUp:" + appTitle);
+        if (mAccessibilityService == null) return ;
+
+        int targetWidth = mScreenWidth;
+        int targetHeight = mScreenHeight;
+        int top = 0;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "swipeUp - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                Rect bound = new Rect();
+                windowInfo.getBoundsInScreen(bound);
+                targetWidth = bound.width();
+                targetHeight = bound.height();
+                top = bound.top;
+                break;
+            }
+        }
+
+        Log.d(TAG, "swipeUp - targetWidth:" + targetWidth + ", targetHeight:" + targetHeight + ", top" + top);
+        swipe(targetWidth / 2, targetHeight / 4 * 3 + top,
+                targetWidth / 2, 0);
+    }
+
+    public void swipeDown(String appTitle) {
+        Log.d(TAG, "swipeDown:" + appTitle);
+        if (mAccessibilityService == null) return ;
+
+        int targetWidth = mScreenWidth;
+        int targetHeight = mScreenHeight;
+        int top = 0;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "swipeDown - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                Rect bound = new Rect();
+                windowInfo.getBoundsInScreen(bound);
+                targetWidth = bound.width();
+                targetHeight = bound.height();
+                top = bound.top;
+                break;
+            }
+        }
+
+        Log.d(TAG, "swipeDown - targetWidth:" + targetWidth + ", targetHeight:" + targetHeight + ", top" + top);
+        swipe(targetWidth/2, targetHeight / 4 + top,
+                targetWidth/2, mScreenHeight);
+    }
+
     private boolean mSwipeBottom = false;
 
     public void screenSwipeUp(){
@@ -577,7 +683,7 @@ public class ScreenManager {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    swipe(mScreenWidth / 2, realHeight / 5 * 3 + realHeight,
+                    swipe(mScreenWidth / 2, realHeight / 4 * 3 + realHeight,
                             mScreenWidth / 2, 0);
                     mSwipeBottom = false;
                 }
@@ -598,18 +704,18 @@ public class ScreenManager {
         }
 
         final int realHeight = mSwipeBottom ? mScreenHeight / 2 : mScreenHeight;
-        swipe(mScreenWidth/2, realHeight / 5 * 2,
+        swipe(mScreenWidth/2, realHeight / 4,
                 mScreenWidth/2, mScreenHeight);
 
         if (mSwipeBottom) {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    swipe(mScreenWidth / 2, realHeight / 5 * 2 + realHeight,
+                    swipe(mScreenWidth / 2, realHeight / 4 + realHeight,
                             mScreenWidth / 2, mScreenHeight);
                     mSwipeBottom = false;
                 }
-            }, 800);
+            }, 1000);
         }
     }
 
@@ -654,6 +760,7 @@ public class ScreenManager {
     public void setMediaProjection(@NonNull MediaProjection mediaProjection) {
         mMediaProjection = mediaProjection;
     }
+
 
     public void startCapture() {
         if (mMediaProjection == null) return;

@@ -15,12 +15,18 @@ import android.widget.Toast;
 
 import com.bonushunter.BHAccessibilityService;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class CommonUtils {
 
     private static final String TAG = CommonUtils.class.getSimpleName();
+
+    private static final int BUFFER_SIZE = 1024;
 
     public static boolean isAccessibilityEnabled(Context context) {
         AccessibilityManager accessibilityManager = (AccessibilityManager)
@@ -63,11 +69,33 @@ public class CommonUtils {
                 }
             }
         }
-
-
     }
 
+    public static void prepareTemplates(Context context, List<String> filePathList) {
+        String targetDirPath = context.getFilesDir().getAbsolutePath();
+        for (String filePath: filePathList) {
+            File targetFile = new File(targetDirPath + File.separator + filePath);
+            Log.d(TAG, "file path:" + targetFile.getAbsolutePath() + "  isExist:" + targetFile.exists());
+            if (!targetFile.exists()) {
+                InputStream is;
+                FileOutputStream fos;
+                try {
+                    byte[] buffer = new byte[BUFFER_SIZE];
+                    is = context.getAssets().open(filePath);
+                    fos = context.openFileOutput(filePath, Context.MODE_PRIVATE);
 
+                    while (is.read(buffer) > 0) {
+                        fos.write(buffer);
+                    }
 
-    public static BHAccessibilityService service;
+                    Log.d(TAG, "Copy done file:" + targetFile.getAbsolutePath());
+
+                    is.close();
+                    fos.close();
+                } catch (Exception e) {
+                    Log.w(TAG, "Exception while copyFiles:" + e.getMessage());
+                }
+            }
+        }
+    }
 }

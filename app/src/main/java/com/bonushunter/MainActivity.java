@@ -317,9 +317,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mMediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
                 startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), REQUEST_MEDIA_PROJECTION);
             } else {
+                // show float window
                 FloatWindow floatWindow = FloatWindow.getInstance(this);
-                floatWindow.setAppRobot(AppRobotFactory.getAppRobot(this, mSelectedPkgName));
-                floatWindow.show();
+                floatWindow.start(mSelectedPkgName);
             }
         }
     }

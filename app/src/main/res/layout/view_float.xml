@@ -13,7 +13,7 @@
         android:gravity="center"
         android:background="@drawable/bg_float_view_btn"
         android:textSize="18sp"
-        android:text="@string/start"/>
+        android:text="@string/stop"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -47,6 +47,36 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:background="@drawable/ic_arrow"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/content2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/remain_time2"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:textColor="@color/float_bg"
+            android:textSize="16sp"
+            android:background="@drawable/bg_float_view_seconds"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:text="0"/>
+
+        <TextView
+            android:id="@+id/task_desc2"
+            android:layout_width="178dp"
+            android:layout_height="wrap_content"
+            android:textColor="#CCFFFFFF"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:textSize="14sp"
+            android:text="正在启动应用"/>
 
     </LinearLayout>
 

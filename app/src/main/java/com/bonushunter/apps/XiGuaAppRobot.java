@@ -12,6 +12,13 @@ public class XiGuaAppRobot extends BaseAppRobot {
 
     public static final String TAG = XiGuaAppRobot.class.getSimpleName();
 
+    private static final String[] COPY_FILES = {
+            "xigua/",
+            "server.key",
+            "test_icon.ppm",
+            "endpoint"
+    };
+
     private ITask mStartTask;
     private ITask mSelectLiveNavTask;
     private ITask mSelectLiveCategoryTask;
@@ -35,6 +42,11 @@ public class XiGuaAppRobot extends BaseAppRobot {
                 + "/xigua/xigua_fudai.png";
         mEnterFudaiLiveRoomTask = new FindOneAndClickTask(context, 15, "福袋直播间", fudaiPath);
         mSelectLiveCategoryTask.setNextTask(mEnterFudaiLiveRoomTask);
+
+    }
+
+    @Override
+    public void doInBackground() {
 
     }
 

@@ -11,6 +11,8 @@ public class AppRobotFactory {
             return new XiGuaAppRobot(context);
         } else if (AppRobotUtils.PACKAGE_NAME_KUAISHOU.equals(pkgName)) {
             return new KuaiShouAppRobot(context);
+        } else if (AppRobotUtils.PACKAGE_NAME_DOUYIN.equals(pkgName)) {
+            return new DouYinAppRobot(context);
         }
         return null;
     }
