@@ -13,6 +13,8 @@ public class AppRobotFactory {
             return new KuaiShouAppRobot(context);
         } else if (AppRobotUtils.PACKAGE_NAME_DOUYIN.equals(pkgName)) {
             return new DouYinAppRobot(context);
+        } else if (AppRobotUtils.PACKAGE_NAME_TOUTIAO.equals(pkgName)) {
+            return new TouTiaoAppRobot(context);
         }
         return null;
     }

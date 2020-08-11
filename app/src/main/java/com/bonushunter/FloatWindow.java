@@ -2,13 +2,16 @@ package com.bonushunter;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -115,7 +118,18 @@ public class FloatWindow implements View.OnTouchListener {
                         }
                     }
                 }).start();
+
+
+//                List<AccessibilityNodeInfo> mBottomNavNodes = mScreenManager.getViewsById("今日头条极速版",
+//                    "com.ss.android.article.lite:id/ey");
+//                AccessibilityNodeInfo taskNavNode = mBottomNavNodes.get(3);
+//                Rect bound = new Rect();
+//
+////                taskNavNode.getBoundsInScreen(bound);
+////                mScreenManager.tap(bound.centerX(), bound.centerY());
+//                mScreenManager.tapViewByText("treasure-box-enable-1.da338c08");
             }
+
         });
     }
 

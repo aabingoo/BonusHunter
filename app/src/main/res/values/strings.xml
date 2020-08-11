@@ -7,6 +7,6 @@
     <string name="start">开 始</string>
 
     <!--Task desc-->
-    <string name="desc_launching_app">"启动应用中"</string>
+    <string name="desc_launching_app">"启动%s中"</string>
     <string name="desc_find_view">"搜寻并点击%s中"</string>
 </resources>

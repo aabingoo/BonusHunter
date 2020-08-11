@@ -138,6 +138,63 @@ public class ScreenManager {
         mAccessibilityService.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
     }
 
+    public void findViews(String appTitle) {
+        if (mAccessibilityService == null) return;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "tapViewById - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                AccessibilityNodeInfo rootNode = windowInfo.getRoot();
+                if (rootNode != null) {
+                    loopNode(rootNode, "1231231232");
+                }
+            }
+        }
+    }
+
+    public List<AccessibilityNodeInfo> getViewsById(String appTitle, String viewId) {
+        Log.d(TAG, "getViewText:" + viewId);
+        if (mAccessibilityService == null) return null;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "tapViewById - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                AccessibilityNodeInfo rootNode = windowInfo.getRoot();
+                if (rootNode != null) {
+                    List<AccessibilityNodeInfo> targetNodes = rootNode.findAccessibilityNodeInfosByViewId(viewId);
+                    Log.d(TAG, "tapViewById - targetNodes:" + targetNodes.size());
+                    return targetNodes;
+                }
+            }
+        }
+        return null;
+    }
+
+    public String getViewText(String appTitle, String viewId) {
+        Log.d(TAG, "getViewText:" + viewId);
+        if (mAccessibilityService == null) return null;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            Log.d(TAG, "tapViewById - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                AccessibilityNodeInfo rootNode = windowInfo.getRoot();
+                if (rootNode != null) {
+                    List<AccessibilityNodeInfo> targetNodes = rootNode.findAccessibilityNodeInfosByViewId(viewId);
+                    Log.d(TAG, "tapViewById - targetNodes:" + targetNodes.size());
+                    if (targetNodes != null && targetNodes.size() > 0) {
+                        AccessibilityNodeInfo targetNode = targetNodes.get(3);
+                        Log.d(TAG, "tapViewById - targetNodes:" + targetNode.toString());
+                        if (targetNode.getText() != null) {
+                            return targetNode.getText().toString();
+                        }
+                        return null;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     public boolean tapViewById(String appTitle, String id) {
         Log.d(TAG, "tapViewById:" + id);
         if (mAccessibilityService == null) return false;
@@ -177,14 +234,14 @@ public class ScreenManager {
                 Log.d(TAG, "rootInfo info:" + rootInfo.toString());
                 AccessibilityNodeInfo targetNode = loopNode(rootInfo, text);
                 if (targetNode != null) {
-                    Log.d(TAG, "targetNode:" + targetNode.toString());
                     boolean clickRet = targetNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    if (!clickRet) {
+                    Log.d(TAG, "targetNode:" + targetNode.toString() + " click ret:" + clickRet);
+//                    if (!clickRet) {
                         Rect bound = new Rect();
                         targetNode.getBoundsInScreen(bound);
                         tap(bound.centerX(), bound.centerY());
                         clickRet = true;
-                    }
+//                    }
                     return clickRet;
                 }
             }
@@ -197,6 +254,7 @@ public class ScreenManager {
 
         if (nodeInfo == null) return null;
 
+//        Log.d(TAG, "loopNode:" + nodeInfo.toString());
         int childCnt = nodeInfo.getChildCount();
         if (childCnt == 0 && nodeInfo.getText() != null) {
             if (searchText.equals(nodeInfo.getText().toString().trim())) {

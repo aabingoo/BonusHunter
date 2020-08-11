@@ -16,6 +16,7 @@ public class AppRobotUtils {
     public static final String PACKAGE_NAME_XIGUA = "com.ss.android.article.video";
     public static final String PACKAGE_NAME_KUAISHOU = "com.kuaishou.nebula";
     public static final String PACKAGE_NAME_DOUYIN = "com.ss.android.ugc.aweme.lite";
+    public static final String PACKAGE_NAME_TOUTIAO = "com.ss.android.article.lite";
 
 
     public static Map<String, String> sSupportApps = new HashMap<String, String>() {
@@ -23,6 +24,7 @@ public class AppRobotUtils {
             put("西瓜视频", PACKAGE_NAME_XIGUA);
             put("快手极速版", PACKAGE_NAME_KUAISHOU);
             put("抖音极速版", PACKAGE_NAME_DOUYIN);
+            put("今日头条极速版", PACKAGE_NAME_TOUTIAO);
         }
     };
 

@@ -46,12 +46,12 @@ public class DouYinAppRobot extends BaseAppRobot {
         while(true) {
             if (checkStop()) return;
             if (cnt > upCnt) {
-                ScreenManager.getInstance(getContext()).swipeDown(mAppTitle);
+                mScreenManager.swipeDown(mAppTitle);
                 if (cnt == upCnt + downCnt) {
                     cnt = 0;
                 }
             } else {
-                ScreenManager.getInstance(getContext()).swipeUp(mAppTitle);
+                mScreenManager.swipeUp(mAppTitle);
             }
             cnt += 1;
             wait(12);
