@@ -22,6 +22,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.DMatch;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
@@ -33,8 +34,9 @@ import org.opencv.features2d.BFMatcher;
 import org.opencv.features2d.FastFeatureDetector;
 import org.opencv.features2d.FlannBasedMatcher;
 import org.opencv.features2d.ORB;
-import org.opencv.features2d.SIFT;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.xfeatures2d.SIFT;
+import org.opencv.xfeatures2d.SURF;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -336,7 +338,7 @@ public class ScreenManager {
 //            org.opencv.android.Utils.matToBitmap(finViewBySurf(null, template), templateBm);
             List<Point> matchPoints = finViewBySurf(source, template);
             for (Point p: matchPoints) {
-                Imgproc.drawMarker(source, p, new Scalar(0, 255, 0, 255), 20);
+                Imgproc.drawMarker(source, p, new Scalar(0, 255, 0, 255));
             }
 
             org.opencv.android.Utils.matToBitmap(source, screenBitmap);
@@ -356,6 +358,214 @@ public class ScreenManager {
 //            }
         }
         return tapPoint;
+    }
+
+    public Point findViewBySIFT(Bitmap templateBm) {
+        Log.d(TAG, "findViewBySURF");
+
+        Image image = mImageReader.acquireLatestImage();
+        if (image != null) {
+            Image.Plane[] planes = image.getPlanes();
+            mByteBuffer = planes[0].getBuffer();
+            int pixelStride = planes[0].getPixelStride();
+            int rowStride = planes[0].getRowStride();
+            int rowPadding = rowStride - pixelStride * mScreenWidth;
+            Bitmap screenBitmap = Bitmap.createBitmap(mScreenWidth + rowPadding / pixelStride,
+                    mScreenHeight, Bitmap.Config.ARGB_8888);
+            screenBitmap.copyPixelsFromBuffer(mByteBuffer);
+            image.close();
+            screenBitmap = Bitmap.createBitmap(screenBitmap, 0, 0, mScreenWidth, mScreenHeight);
+
+
+            Log.d(TAG, "screenBitmap.getWidth():" + screenBitmap.getWidth()
+                    + ", screenBitmap.getHeight():" + screenBitmap.getHeight()
+                    + ", templateBm.getWidth():" + templateBm.getWidth()
+                    + ", templateBm.getHeight():" + templateBm.getHeight());
+
+            Mat sourceImage = new Mat();
+            Utils.bitmapToMat(screenBitmap, sourceImage, true);
+            Mat templateImage = new Mat();
+            Utils.bitmapToMat(templateBm, templateImage, true);
+
+            MatOfKeyPoint templateMatOfKeyPoints = new MatOfKeyPoint();
+            MatOfKeyPoint sourceMatOfKeyPoints = new MatOfKeyPoint();
+            Mat templateDescriptor = new Mat();
+            Mat sourceDescriptor = new Mat();
+            //        FastFeatureDetector fastFeatureDetector = FastFeatureDetector.create();
+            SIFT surf = SIFT.create();
+
+            // detect features
+            //        fastFeatureDetector.detect(templateImage, templateMatOfKeyPoints);
+            //        fastFeatureDetector.detect(sourceImage, sourceMatOfKeyPoints);
+            surf.detect(templateImage, templateMatOfKeyPoints);
+            surf.detect(sourceImage, sourceMatOfKeyPoints);
+
+            // compute
+            surf.compute(templateImage, templateMatOfKeyPoints, templateDescriptor);
+            surf.compute(sourceImage, sourceMatOfKeyPoints, sourceDescriptor);
+
+            // match
+            FlannBasedMatcher flannBasedMatcher = FlannBasedMatcher.create();
+            MatOfDMatch matOfDMatch = new MatOfDMatch();
+            flannBasedMatcher.match(templateDescriptor, sourceDescriptor, matOfDMatch);
+
+            DMatch[] dMatches = matOfDMatch.toArray();
+            KeyPoint[] sourceKeyPoints = sourceMatOfKeyPoints.toArray();
+            Map<Point, Integer> nearPointsMap = new HashMap<>();
+            Point maxNearNumPoint = null;
+            int maxNearNum = 0;
+            double campareDistance = templateImage.width() * templateImage.width() +
+                    templateImage.height() * templateImage.height();
+            for (int i = 0; i < dMatches.length; i++) {
+                Point newPoint = new Point(sourceKeyPoints[dMatches[i].trainIdx].pt.x,
+                        sourceKeyPoints[dMatches[i].trainIdx].pt.y);
+
+                //            Imgproc.drawMarker(sourceImage, newPoint, new Scalar(0, 255, 0, 255));
+                Imgproc.drawMarker(sourceImage, newPoint, new Scalar(0, 0, 255, 255),
+                        Imgproc.MARKER_STAR, 100, 30, 0);
+
+                boolean findNear = false;
+                for (Point nearPoint: nearPointsMap.keySet()) {
+                    if (distance(nearPoint, newPoint) < campareDistance) {
+                        int cnt = nearPointsMap.get(nearPoint) + 1;
+                        nearPointsMap.put(nearPoint, cnt);
+                        nearPoint.x = (nearPoint.x + nearPoint.x) / 2;
+                        nearPoint.y = (nearPoint.y + nearPoint.y) / 2;
+                        findNear = true;
+                        Log.d(TAG, "find near x:" + nearPoint.x + ",y:" + nearPoint.y + ", cnt:" + nearPointsMap.get(nearPoint));
+                        if (maxNearNum < cnt) {
+                            maxNearNum = cnt;
+                            maxNearNumPoint = nearPoint;
+                        }
+                    }
+                }
+                if (!findNear) {
+                    nearPointsMap.put(newPoint, 1);
+                    Log.d(TAG, "newPoint x:" + newPoint.x + ",y:" + newPoint.y + ", cnt:" + nearPointsMap.get(newPoint));
+                }
+            }
+
+            Log.d(TAG, "maxNearNumPoint x:" + maxNearNumPoint.x + ",y:" + maxNearNumPoint.y +
+                    ", cnt:" + maxNearNum);
+            if (maxNearNumPoint != null) {
+                //            Imgproc.drawMarker(sourceImage, maxNearNumPoint, new Scalar(255, 0, 0, 255));
+                Imgproc.drawMarker(sourceImage, maxNearNumPoint, new Scalar(255, 0, 0, 255),
+                        Imgproc.MARKER_STAR, 100, 30, 0);
+                org.opencv.android.Utils.matToBitmap(sourceImage, screenBitmap);
+
+                if (mFindView != null) {
+                    mFindView.onFind(screenBitmap);
+                }
+
+                return maxNearNumPoint;
+            }
+        }
+
+        return null;
+    }
+
+    public Point findViewBySURF(Bitmap templateBm) {
+        Log.d(TAG, "findViewBySURF");
+
+        Image image = mImageReader.acquireLatestImage();
+        if (image != null) {
+            Image.Plane[] planes = image.getPlanes();
+            mByteBuffer = planes[0].getBuffer();
+            int pixelStride = planes[0].getPixelStride();
+            int rowStride = planes[0].getRowStride();
+            int rowPadding = rowStride - pixelStride * mScreenWidth;
+            Bitmap screenBitmap = Bitmap.createBitmap(mScreenWidth + rowPadding / pixelStride,
+                    mScreenHeight, Bitmap.Config.ARGB_8888);
+            screenBitmap.copyPixelsFromBuffer(mByteBuffer);
+            image.close();
+            screenBitmap = Bitmap.createBitmap(screenBitmap, 0, 0, mScreenWidth, mScreenHeight);
+
+
+            Log.d(TAG, "screenBitmap.getWidth():" + screenBitmap.getWidth()
+                    + ", screenBitmap.getHeight():" + screenBitmap.getHeight()
+                    + ", templateBm.getWidth():" + templateBm.getWidth()
+                    + ", templateBm.getHeight():" + templateBm.getHeight());
+
+            Mat sourceImage = new Mat();
+            Utils.bitmapToMat(screenBitmap, sourceImage, true);
+            Mat templateImage = new Mat();
+            Utils.bitmapToMat(templateBm, templateImage, true);
+
+            MatOfKeyPoint templateMatOfKeyPoints = new MatOfKeyPoint();
+            MatOfKeyPoint sourceMatOfKeyPoints = new MatOfKeyPoint();
+            Mat templateDescriptor = new Mat();
+            Mat sourceDescriptor = new Mat();
+    //        FastFeatureDetector fastFeatureDetector = FastFeatureDetector.create();
+            SURF surf = SURF.create();
+
+            // detect features
+    //        fastFeatureDetector.detect(templateImage, templateMatOfKeyPoints);
+    //        fastFeatureDetector.detect(sourceImage, sourceMatOfKeyPoints);
+            surf.detect(templateImage, templateMatOfKeyPoints);
+            surf.detect(sourceImage, sourceMatOfKeyPoints);
+
+            // compute
+            surf.compute(templateImage, templateMatOfKeyPoints, templateDescriptor);
+            surf.compute(sourceImage, sourceMatOfKeyPoints, sourceDescriptor);
+
+            // match
+            FlannBasedMatcher flannBasedMatcher = FlannBasedMatcher.create();
+            MatOfDMatch matOfDMatch = new MatOfDMatch();
+            flannBasedMatcher.match(templateDescriptor, sourceDescriptor, matOfDMatch);
+
+            DMatch[] dMatches = matOfDMatch.toArray();
+            KeyPoint[] sourceKeyPoints = sourceMatOfKeyPoints.toArray();
+            Map<Point, Integer> nearPointsMap = new HashMap<>();
+            Point maxNearNumPoint = null;
+            int maxNearNum = 0;
+            double campareDistance = templateImage.width() * templateImage.width() +
+                    templateImage.height() * templateImage.height();
+            for (int i = 0; i < dMatches.length; i++) {
+                Point newPoint = new Point(sourceKeyPoints[dMatches[i].trainIdx].pt.x,
+                        sourceKeyPoints[dMatches[i].trainIdx].pt.y);
+
+    //            Imgproc.drawMarker(sourceImage, newPoint, new Scalar(0, 255, 0, 255));
+                Imgproc.drawMarker(sourceImage, newPoint, new Scalar(0, 0, 255, 255),
+                        Imgproc.MARKER_STAR, 100, 30, 0);
+
+                boolean findNear = false;
+                for (Point nearPoint: nearPointsMap.keySet()) {
+                    if (distance(nearPoint, newPoint) < campareDistance) {
+                        int cnt = nearPointsMap.get(nearPoint) + 1;
+                        nearPointsMap.put(nearPoint, cnt);
+                        nearPoint.x = (nearPoint.x + nearPoint.x) / 2;
+                        nearPoint.y = (nearPoint.y + nearPoint.y) / 2;
+                        findNear = true;
+                        Log.d(TAG, "find near x:" + nearPoint.x + ",y:" + nearPoint.y + ", cnt:" + nearPointsMap.get(nearPoint));
+                        if (maxNearNum < cnt) {
+                            maxNearNum = cnt;
+                            maxNearNumPoint = nearPoint;
+                        }
+                    }
+                }
+                if (!findNear) {
+                    nearPointsMap.put(newPoint, 1);
+                    Log.d(TAG, "newPoint x:" + newPoint.x + ",y:" + newPoint.y + ", cnt:" + nearPointsMap.get(newPoint));
+                }
+            }
+
+            Log.d(TAG, "maxNearNumPoint x:" + maxNearNumPoint.x + ",y:" + maxNearNumPoint.y +
+                    ", cnt:" + maxNearNum);
+            if (maxNearNumPoint != null) {
+    //            Imgproc.drawMarker(sourceImage, maxNearNumPoint, new Scalar(255, 0, 0, 255));
+                Imgproc.drawMarker(sourceImage, maxNearNumPoint, new Scalar(255, 0, 0, 255),
+                        Imgproc.MARKER_STAR, 100, 30, 0);
+                org.opencv.android.Utils.matToBitmap(sourceImage, screenBitmap);
+
+                if (mFindView != null) {
+                    mFindView.onFind(screenBitmap);
+                }
+
+                return maxNearNumPoint;
+            }
+        }
+
+        return null;
     }
 
     public Point findViewByFAST(Bitmap templateBm) {
@@ -416,7 +626,8 @@ public class ScreenManager {
                 Point newPoint = new Point(sourceKeyPoints[dMatches[i].trainIdx].pt.x,
                                 sourceKeyPoints[dMatches[i].trainIdx].pt.y);
 
-                Imgproc.drawMarker(sourceImage, newPoint, new Scalar(0, 255, 0, 255), 5, 50);
+                Imgproc.drawMarker(sourceImage, newPoint, new Scalar(0, 0, 255, 255),
+                        Imgproc.MARKER_STAR, 100, 30, 0);
 
                 boolean findNear = false;
                 for (Point nearPoint: nearPointsMap.keySet()) {
@@ -442,7 +653,9 @@ public class ScreenManager {
             Log.d(TAG, "maxNearNumPoint x:" + maxNearNumPoint.x + ",y:" + maxNearNumPoint.y +
                     ", cnt:" + maxNearNum);
             if (maxNearNumPoint != null) {
-                Imgproc.drawMarker(sourceImage, maxNearNumPoint, new Scalar(255, 0, 0, 255), 10, 50);
+//                Imgproc.drawMarker(sourceImage, maxNearNumPoint, new Scalar(255, 0, 0, 255));
+                Imgproc.drawMarker(sourceImage, maxNearNumPoint, new Scalar(255, 0, 0, 255),
+                        Imgproc.MARKER_STAR, 100, 30, 0);
                 org.opencv.android.Utils.matToBitmap(sourceImage, screenBitmap);
 
                 if (mFindView != null) {
@@ -536,7 +749,7 @@ public class ScreenManager {
             for (DMatch dMatch: goodMatchList) {
                 Point matchPoint = new Point(sourceKeyPoints[dMatch.trainIdx].pt.x,
                         sourceKeyPoints[dMatch.trainIdx].pt.y);
-                Imgproc.drawMarker(sourceImage, matchPoint, new Scalar(0, 255, 0, 255), 5, 50);
+                Imgproc.drawMarker(sourceImage, matchPoint, new Scalar(0, 255, 0, 255));
             }
             org.opencv.android.Utils.matToBitmap(sourceImage, screenBitmap);
             if (mFindView != null) {

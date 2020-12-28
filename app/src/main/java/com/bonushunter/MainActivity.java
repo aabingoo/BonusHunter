@@ -23,16 +23,26 @@ import com.bonushunter.utils.AppRobotUtils;
 import com.bonushunter.utils.CommonUtils;
 
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.features2d.DescriptorExtractor;
+import org.opencv.features2d.FastFeatureDetector;
+import org.opencv.features2d.Feature2D;
+import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.xfeatures2d.SURF;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import androidx.annotation.Nullable;
@@ -106,22 +116,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 ////        String sdcardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
 ////        Log.d(TAG, "sdcardPath:" + sdcardPath);
 ////
-//        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_home);
+        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua);
 //        mImageView.setImageBitmap(xigua);
-//        final Bitmap xigua_fudai = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_live_tab);
+        final Bitmap xigua_fudai = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_fudai);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                Mat sourceImage = new Mat();
+                Utils.bitmapToMat(xigua, sourceImage, true);
+                Mat templateImage = new Mat();
+                Utils.bitmapToMat(xigua_fudai, templateImage, true);
+
+//                MatOfKeyPoint templateMatOfKeyPoints = new MatOfKeyPoint();
+////                FastFeatureDetector fastFeatureDetector = FastFeatureDetector.create();
+//                SURF surf = SURF.create();
 //
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                Mat source = new Mat();
-//                org.opencv.android.Utils.bitmapToMat(xigua, source);
-//                Mat temp = new Mat();
-//                org.opencv.android.Utils.bitmapToMat(xigua_fudai, temp);
+//                surf.detect(templateImage, templateMatOfKeyPoints);
 //
-//                Mat ret = Mat.zeros(source.rows() - temp.rows() + 1,
-//                        source.cols() - temp.cols() + 1, CvType.CV_32FC1);
-//                Imgproc.matchTemplate(source, temp, ret, Imgproc.TM_SQDIFF_NORMED);
 //
+//                Mat templateDescriptor = new Mat();
+//                surf.compute(templateImage, templateMatOfKeyPoints, templateDescriptor);
+//
+//                //显示模板图的特征点图片
+//                Mat outputImage = new Mat(templateImage.rows(), templateImage.cols(), CvType.CV_32FC1);
+//                Features2d.drawKeypoints(templateImage, templateMatOfKeyPoints, outputImage, new Scalar(255, 0, 0, 255), 0);
+//                Utils.matToBitmap(outputImage, xigua_fudai);
+//
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        mImageView.setImageBitmap(xigua_fudai);
+//                    }
+//                });
+
+
+//                SURF surf = SURF.create();
+
+
+//                mScreenManager.findViewByFAST(xigua, xigua_fudai);
+//                mScreenManager.findViewBySURF(xigua, xigua_fudai);
+
+
 
 //                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1, new Mat());
 //                Log.d(TAG, "r:" + ret.rows() + ", c:" + ret.cols());
@@ -154,7 +191,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                            if (!isAlreadyHit) {
 //                                hitPoints.add(new Point(j, i));
 //                                Log.d(TAG, "find match: x:" + j + ", y:" + i + ", mat:" + matchValue);
-//                                Imgproc.rectangle(source, new Rect((int)j, (int)i, temp.width(), temp.height()), new Scalar(0, 255, 0), 5);
+////                                Imgproc.rectangle(source, new Rect((int)j, (int)i, temp.width(), temp.height()), new Scalar(0, 255, 0), 5);
+//                                Imgproc.drawMarker(source, new Point(j, i), new Scalar(0, 255, 0, 255));
 //                            }
 //                        }
 //                    }
@@ -169,8 +207,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                nf.setGroupingUsed(false);
 //                Log.d(TAG, "findView x:" + matchLoc.x + ", y:" + matchLoc.y + ", value:" + nf.format(mlr.minVal)
 //                        + ", ma:" + (mlr.minVal < 0));
-//                Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
-//                        temp.width(), temp.height()), new Scalar(100, 255, 0, 0), 5);
+//                Imgproc.drawMarker(source, new Point(matchLoc.x, matchLoc.y), new Scalar(0, 255, 0, 255));
+////                Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
+////                        temp.width(), temp.height()), new Scalar(100, 255, 0, 0), 5);
 //                org.opencv.android.Utils.matToBitmap(source, xigua);
 //                runOnUiThread(new Runnable() {
 //                    @Override
@@ -178,8 +217,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                        mImageView.setImageBitmap(xigua);
 //                    }
 //                });
-//            }
-//        }).start();
+            }
+        }).start();
 
 
 

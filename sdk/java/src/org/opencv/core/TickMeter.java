@@ -6,18 +6,8 @@ package org.opencv.core;
 
 
 // C++: class TickMeter
-/**
- * a Class to measure passing time.
- *
- * The class computes passing time by counting the number of ticks per second. That is, the following code computes the
- * execution time in seconds:
- * SNIPPET: snippets/core_various.cpp TickMeter_total
- *
- * It is also possible to compute the average time over multiple runs:
- * SNIPPET: snippets/core_various.cpp TickMeter_average
- *
- * SEE: getTickCount, getTickFrequency
- */
+//javadoc: TickMeter
+
 public class TickMeter {
 
     protected final long nativeObj;
@@ -29,110 +19,128 @@ public class TickMeter {
     public static TickMeter __fromPtr__(long addr) { return new TickMeter(addr); }
 
     //
-    // C++:   cv::TickMeter::TickMeter()
+    // C++:   TickMeter()
     //
 
-    public TickMeter() {
+    //javadoc: TickMeter::TickMeter()
+    public   TickMeter()
+    {
+        
         nativeObj = TickMeter_0();
+        
+        return;
     }
 
 
     //
-    // C++:  double cv::TickMeter::getAvgTimeMilli()
+    // C++:  double getTimeMicro()
     //
 
-    public double getAvgTimeMilli() {
-        return getAvgTimeMilli_0(nativeObj);
+    //javadoc: TickMeter::getTimeMicro()
+    public  double getTimeMicro()
+    {
+        
+        double retVal = getTimeMicro_0(nativeObj);
+        
+        return retVal;
     }
 
 
     //
-    // C++:  double cv::TickMeter::getAvgTimeSec()
+    // C++:  double getTimeMilli()
     //
 
-    public double getAvgTimeSec() {
-        return getAvgTimeSec_0(nativeObj);
+    //javadoc: TickMeter::getTimeMilli()
+    public  double getTimeMilli()
+    {
+        
+        double retVal = getTimeMilli_0(nativeObj);
+        
+        return retVal;
     }
 
 
     //
-    // C++:  double cv::TickMeter::getFPS()
+    // C++:  double getTimeSec()
     //
 
-    public double getFPS() {
-        return getFPS_0(nativeObj);
+    //javadoc: TickMeter::getTimeSec()
+    public  double getTimeSec()
+    {
+        
+        double retVal = getTimeSec_0(nativeObj);
+        
+        return retVal;
     }
 
 
     //
-    // C++:  double cv::TickMeter::getTimeMicro()
+    // C++:  int64 getCounter()
     //
 
-    public double getTimeMicro() {
-        return getTimeMicro_0(nativeObj);
+    //javadoc: TickMeter::getCounter()
+    public  long getCounter()
+    {
+        
+        long retVal = getCounter_0(nativeObj);
+        
+        return retVal;
     }
 
 
     //
-    // C++:  double cv::TickMeter::getTimeMilli()
+    // C++:  int64 getTimeTicks()
     //
 
-    public double getTimeMilli() {
-        return getTimeMilli_0(nativeObj);
+    //javadoc: TickMeter::getTimeTicks()
+    public  long getTimeTicks()
+    {
+        
+        long retVal = getTimeTicks_0(nativeObj);
+        
+        return retVal;
     }
 
 
     //
-    // C++:  double cv::TickMeter::getTimeSec()
+    // C++:  void reset()
     //
 
-    public double getTimeSec() {
-        return getTimeSec_0(nativeObj);
-    }
-
-
-    //
-    // C++:  int64 cv::TickMeter::getCounter()
-    //
-
-    public long getCounter() {
-        return getCounter_0(nativeObj);
-    }
-
-
-    //
-    // C++:  int64 cv::TickMeter::getTimeTicks()
-    //
-
-    public long getTimeTicks() {
-        return getTimeTicks_0(nativeObj);
-    }
-
-
-    //
-    // C++:  void cv::TickMeter::reset()
-    //
-
-    public void reset() {
+    //javadoc: TickMeter::reset()
+    public  void reset()
+    {
+        
         reset_0(nativeObj);
+        
+        return;
     }
 
 
     //
-    // C++:  void cv::TickMeter::start()
+    // C++:  void start()
     //
 
-    public void start() {
+    //javadoc: TickMeter::start()
+    public  void start()
+    {
+        
         start_0(nativeObj);
+        
+        return;
     }
 
 
     //
-    // C++:  void cv::TickMeter::stop()
+    // C++:  void stop()
     //
 
-    public void stop() {
+    //javadoc: TickMeter::stop()
+    public  void stop()
+    {
+        
         stop_0(nativeObj);
+        
+        return;
     }
 
 
@@ -143,40 +151,31 @@ public class TickMeter {
 
 
 
-    // C++:   cv::TickMeter::TickMeter()
+    // C++:   TickMeter()
     private static native long TickMeter_0();
 
-    // C++:  double cv::TickMeter::getAvgTimeMilli()
-    private static native double getAvgTimeMilli_0(long nativeObj);
-
-    // C++:  double cv::TickMeter::getAvgTimeSec()
-    private static native double getAvgTimeSec_0(long nativeObj);
-
-    // C++:  double cv::TickMeter::getFPS()
-    private static native double getFPS_0(long nativeObj);
-
-    // C++:  double cv::TickMeter::getTimeMicro()
+    // C++:  double getTimeMicro()
     private static native double getTimeMicro_0(long nativeObj);
 
-    // C++:  double cv::TickMeter::getTimeMilli()
+    // C++:  double getTimeMilli()
     private static native double getTimeMilli_0(long nativeObj);
 
-    // C++:  double cv::TickMeter::getTimeSec()
+    // C++:  double getTimeSec()
     private static native double getTimeSec_0(long nativeObj);
 
-    // C++:  int64 cv::TickMeter::getCounter()
+    // C++:  int64 getCounter()
     private static native long getCounter_0(long nativeObj);
 
-    // C++:  int64 cv::TickMeter::getTimeTicks()
+    // C++:  int64 getTimeTicks()
     private static native long getTimeTicks_0(long nativeObj);
 
-    // C++:  void cv::TickMeter::reset()
+    // C++:  void reset()
     private static native void reset_0(long nativeObj);
 
-    // C++:  void cv::TickMeter::start()
+    // C++:  void start()
     private static native void start_0(long nativeObj);
 
-    // C++:  void cv::TickMeter::stop()
+    // C++:  void stop()
     private static native void stop_0(long nativeObj);
 
     // native support for java finalize()

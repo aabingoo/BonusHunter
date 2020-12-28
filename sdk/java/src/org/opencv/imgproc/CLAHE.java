@@ -8,9 +8,8 @@ import org.opencv.core.Mat;
 import org.opencv.core.Size;
 
 // C++: class CLAHE
-/**
- * Base class for Contrast Limited Adaptive Histogram Equalization.
- */
+//javadoc: CLAHE
+
 public class CLAHE extends Algorithm {
 
     protected CLAHE(long addr) { super(addr); }
@@ -19,73 +18,86 @@ public class CLAHE extends Algorithm {
     public static CLAHE __fromPtr__(long addr) { return new CLAHE(addr); }
 
     //
-    // C++:  Size cv::CLAHE::getTilesGridSize()
+    // C++:  Size getTilesGridSize()
     //
 
-    public Size getTilesGridSize() {
-        return new Size(getTilesGridSize_0(nativeObj));
+    //javadoc: CLAHE::getTilesGridSize()
+    public  Size getTilesGridSize()
+    {
+        
+        Size retVal = new Size(getTilesGridSize_0(nativeObj));
+        
+        return retVal;
     }
 
 
     //
-    // C++:  double cv::CLAHE::getClipLimit()
+    // C++:  double getClipLimit()
     //
 
-    public double getClipLimit() {
-        return getClipLimit_0(nativeObj);
+    //javadoc: CLAHE::getClipLimit()
+    public  double getClipLimit()
+    {
+        
+        double retVal = getClipLimit_0(nativeObj);
+        
+        return retVal;
     }
 
 
     //
-    // C++:  void cv::CLAHE::apply(Mat src, Mat& dst)
+    // C++:  void apply(Mat src, Mat& dst)
     //
 
-    /**
-     * Equalizes the histogram of a grayscale image using Contrast Limited Adaptive Histogram Equalization.
-     *
-     *     @param src Source image of type CV_8UC1 or CV_16UC1.
-     *     @param dst Destination image.
-     */
-    public void apply(Mat src, Mat dst) {
+    //javadoc: CLAHE::apply(src, dst)
+    public  void apply(Mat src, Mat dst)
+    {
+        
         apply_0(nativeObj, src.nativeObj, dst.nativeObj);
+        
+        return;
     }
 
 
     //
-    // C++:  void cv::CLAHE::collectGarbage()
+    // C++:  void collectGarbage()
     //
 
-    public void collectGarbage() {
+    //javadoc: CLAHE::collectGarbage()
+    public  void collectGarbage()
+    {
+        
         collectGarbage_0(nativeObj);
+        
+        return;
     }
 
 
     //
-    // C++:  void cv::CLAHE::setClipLimit(double clipLimit)
+    // C++:  void setClipLimit(double clipLimit)
     //
 
-    /**
-     * Sets threshold for contrast limiting.
-     *
-     *     @param clipLimit threshold value.
-     */
-    public void setClipLimit(double clipLimit) {
+    //javadoc: CLAHE::setClipLimit(clipLimit)
+    public  void setClipLimit(double clipLimit)
+    {
+        
         setClipLimit_0(nativeObj, clipLimit);
+        
+        return;
     }
 
 
     //
-    // C++:  void cv::CLAHE::setTilesGridSize(Size tileGridSize)
+    // C++:  void setTilesGridSize(Size tileGridSize)
     //
 
-    /**
-     * Sets size of grid for histogram equalization. Input image will be divided into
-     *     equally sized rectangular tiles.
-     *
-     *     @param tileGridSize defines the number of tiles in row and column.
-     */
-    public void setTilesGridSize(Size tileGridSize) {
+    //javadoc: CLAHE::setTilesGridSize(tileGridSize)
+    public  void setTilesGridSize(Size tileGridSize)
+    {
+        
         setTilesGridSize_0(nativeObj, tileGridSize.width, tileGridSize.height);
+        
+        return;
     }
 
 
@@ -96,22 +108,22 @@ public class CLAHE extends Algorithm {
 
 
 
-    // C++:  Size cv::CLAHE::getTilesGridSize()
+    // C++:  Size getTilesGridSize()
     private static native double[] getTilesGridSize_0(long nativeObj);
 
-    // C++:  double cv::CLAHE::getClipLimit()
+    // C++:  double getClipLimit()
     private static native double getClipLimit_0(long nativeObj);
 
-    // C++:  void cv::CLAHE::apply(Mat src, Mat& dst)
+    // C++:  void apply(Mat src, Mat& dst)
     private static native void apply_0(long nativeObj, long src_nativeObj, long dst_nativeObj);
 
-    // C++:  void cv::CLAHE::collectGarbage()
+    // C++:  void collectGarbage()
     private static native void collectGarbage_0(long nativeObj);
 
-    // C++:  void cv::CLAHE::setClipLimit(double clipLimit)
+    // C++:  void setClipLimit(double clipLimit)
     private static native void setClipLimit_0(long nativeObj, double clipLimit);
 
-    // C++:  void cv::CLAHE::setTilesGridSize(Size tileGridSize)
+    // C++:  void setTilesGridSize(Size tileGridSize)
     private static native void setTilesGridSize_0(long nativeObj, double tileGridSize_width, double tileGridSize_height);
 
     // native support for java finalize()

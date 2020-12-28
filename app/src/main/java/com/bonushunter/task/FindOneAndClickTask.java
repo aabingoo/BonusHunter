@@ -28,19 +28,19 @@ public class FindOneAndClickTask extends BaseTask {
     @Override
     public boolean doInBackground() {
 
-        String format = mContext.getString(R.string.desc_find_view);
-        FloatWindow.getInstance(mContext).setTaskDesc(String.format(format, mTitle));
-
-        Bitmap bitmap = BitmapFactory.decodeFile(mTemplateImgPath).copy(Bitmap.Config.ARGB_8888, true);
-
-        ScreenManager screenManager = ScreenManager.getInstance(mContext);
-        Point tapPoint = screenManager.findViewByFAST(bitmap);
-        Log.d(TAG, "find point:" + (tapPoint != null));
-        if (tapPoint != null) {
-            //find
-            screenManager.tap((int)tapPoint.x, (int)tapPoint.y);
-            return true;
-        }
+//        String format = mContext.getString(R.string.desc_find_view);
+//        FloatWindow.getInstance(mContext).setTaskDesc(String.format(format, mTitle));
+//
+//        Bitmap bitmap = BitmapFactory.decodeFile(mTemplateImgPath).copy(Bitmap.Config.ARGB_8888, true);
+//
+//        ScreenManager screenManager = ScreenManager.getInstance(mContext);
+//        Point tapPoint = screenManager.findViewByFAST(bitmap);
+//        Log.d(TAG, "find point:" + (tapPoint != null));
+//        if (tapPoint != null) {
+//            //find
+//            screenManager.tap((int)tapPoint.x, (int)tapPoint.y);
+//            return true;
+//        }
         return false;
     }
 }

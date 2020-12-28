@@ -9,14 +9,8 @@ import org.opencv.video.SparseOpticalFlow;
 import org.opencv.video.SparsePyrLKOpticalFlow;
 
 // C++: class SparsePyrLKOpticalFlow
-/**
- * Class used for calculating a sparse optical flow.
- *
- * The class can calculate an optical flow for a sparse feature set using the
- * iterative Lucas-Kanade method with pyramids.
- *
- * SEE: calcOpticalFlowPyrLK
- */
+//javadoc: SparsePyrLKOpticalFlow
+
 public class SparsePyrLKOpticalFlow extends SparseOpticalFlow {
 
     protected SparsePyrLKOpticalFlow(long addr) { super(addr); }
@@ -25,121 +19,165 @@ public class SparsePyrLKOpticalFlow extends SparseOpticalFlow {
     public static SparsePyrLKOpticalFlow __fromPtr__(long addr) { return new SparsePyrLKOpticalFlow(addr); }
 
     //
-    // C++: static Ptr_SparsePyrLKOpticalFlow cv::SparsePyrLKOpticalFlow::create(Size winSize = Size(21, 21), int maxLevel = 3, TermCriteria crit = TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01), int flags = 0, double minEigThreshold = 1e-4)
+    // C++: static Ptr_SparsePyrLKOpticalFlow create(Size winSize = Size(21, 21), int maxLevel = 3, TermCriteria crit = TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01), int flags = 0, double minEigThreshold = 1e-4)
     //
 
-    public static SparsePyrLKOpticalFlow create(Size winSize, int maxLevel, TermCriteria crit, int flags, double minEigThreshold) {
-        return SparsePyrLKOpticalFlow.__fromPtr__(create_0(winSize.width, winSize.height, maxLevel, crit.type, crit.maxCount, crit.epsilon, flags, minEigThreshold));
+    //javadoc: SparsePyrLKOpticalFlow::create(winSize, maxLevel, crit, flags, minEigThreshold)
+    public static SparsePyrLKOpticalFlow create(Size winSize, int maxLevel, TermCriteria crit, int flags, double minEigThreshold)
+    {
+        
+        SparsePyrLKOpticalFlow retVal = SparsePyrLKOpticalFlow.__fromPtr__(create_0(winSize.width, winSize.height, maxLevel, crit.type, crit.maxCount, crit.epsilon, flags, minEigThreshold));
+        
+        return retVal;
     }
 
-    public static SparsePyrLKOpticalFlow create(Size winSize, int maxLevel, TermCriteria crit, int flags) {
-        return SparsePyrLKOpticalFlow.__fromPtr__(create_1(winSize.width, winSize.height, maxLevel, crit.type, crit.maxCount, crit.epsilon, flags));
-    }
-
-    public static SparsePyrLKOpticalFlow create(Size winSize, int maxLevel, TermCriteria crit) {
-        return SparsePyrLKOpticalFlow.__fromPtr__(create_2(winSize.width, winSize.height, maxLevel, crit.type, crit.maxCount, crit.epsilon));
-    }
-
-    public static SparsePyrLKOpticalFlow create(Size winSize, int maxLevel) {
-        return SparsePyrLKOpticalFlow.__fromPtr__(create_3(winSize.width, winSize.height, maxLevel));
-    }
-
-    public static SparsePyrLKOpticalFlow create(Size winSize) {
-        return SparsePyrLKOpticalFlow.__fromPtr__(create_4(winSize.width, winSize.height));
-    }
-
-    public static SparsePyrLKOpticalFlow create() {
-        return SparsePyrLKOpticalFlow.__fromPtr__(create_5());
+    //javadoc: SparsePyrLKOpticalFlow::create()
+    public static SparsePyrLKOpticalFlow create()
+    {
+        
+        SparsePyrLKOpticalFlow retVal = SparsePyrLKOpticalFlow.__fromPtr__(create_1());
+        
+        return retVal;
     }
 
 
     //
-    // C++:  Size cv::SparsePyrLKOpticalFlow::getWinSize()
+    // C++:  Size getWinSize()
     //
 
-    public Size getWinSize() {
-        return new Size(getWinSize_0(nativeObj));
+    //javadoc: SparsePyrLKOpticalFlow::getWinSize()
+    public  Size getWinSize()
+    {
+        
+        Size retVal = new Size(getWinSize_0(nativeObj));
+        
+        return retVal;
     }
 
 
     //
-    // C++:  TermCriteria cv::SparsePyrLKOpticalFlow::getTermCriteria()
+    // C++:  TermCriteria getTermCriteria()
     //
 
-    public TermCriteria getTermCriteria() {
-        return new TermCriteria(getTermCriteria_0(nativeObj));
+    //javadoc: SparsePyrLKOpticalFlow::getTermCriteria()
+    public  TermCriteria getTermCriteria()
+    {
+        
+        TermCriteria retVal = new TermCriteria(getTermCriteria_0(nativeObj));
+        
+        return retVal;
     }
 
 
     //
-    // C++:  double cv::SparsePyrLKOpticalFlow::getMinEigThreshold()
+    // C++:  double getMinEigThreshold()
     //
 
-    public double getMinEigThreshold() {
-        return getMinEigThreshold_0(nativeObj);
+    //javadoc: SparsePyrLKOpticalFlow::getMinEigThreshold()
+    public  double getMinEigThreshold()
+    {
+        
+        double retVal = getMinEigThreshold_0(nativeObj);
+        
+        return retVal;
     }
 
 
     //
-    // C++:  int cv::SparsePyrLKOpticalFlow::getFlags()
+    // C++:  int getFlags()
     //
 
-    public int getFlags() {
-        return getFlags_0(nativeObj);
+    //javadoc: SparsePyrLKOpticalFlow::getFlags()
+    public  int getFlags()
+    {
+        
+        int retVal = getFlags_0(nativeObj);
+        
+        return retVal;
     }
 
 
     //
-    // C++:  int cv::SparsePyrLKOpticalFlow::getMaxLevel()
+    // C++:  int getMaxLevel()
     //
 
-    public int getMaxLevel() {
-        return getMaxLevel_0(nativeObj);
+    //javadoc: SparsePyrLKOpticalFlow::getMaxLevel()
+    public  int getMaxLevel()
+    {
+        
+        int retVal = getMaxLevel_0(nativeObj);
+        
+        return retVal;
     }
 
 
     //
-    // C++:  void cv::SparsePyrLKOpticalFlow::setFlags(int flags)
+    // C++:  void setFlags(int flags)
     //
 
-    public void setFlags(int flags) {
+    //javadoc: SparsePyrLKOpticalFlow::setFlags(flags)
+    public  void setFlags(int flags)
+    {
+        
         setFlags_0(nativeObj, flags);
+        
+        return;
     }
 
 
     //
-    // C++:  void cv::SparsePyrLKOpticalFlow::setMaxLevel(int maxLevel)
+    // C++:  void setMaxLevel(int maxLevel)
     //
 
-    public void setMaxLevel(int maxLevel) {
+    //javadoc: SparsePyrLKOpticalFlow::setMaxLevel(maxLevel)
+    public  void setMaxLevel(int maxLevel)
+    {
+        
         setMaxLevel_0(nativeObj, maxLevel);
+        
+        return;
     }
 
 
     //
-    // C++:  void cv::SparsePyrLKOpticalFlow::setMinEigThreshold(double minEigThreshold)
+    // C++:  void setMinEigThreshold(double minEigThreshold)
     //
 
-    public void setMinEigThreshold(double minEigThreshold) {
+    //javadoc: SparsePyrLKOpticalFlow::setMinEigThreshold(minEigThreshold)
+    public  void setMinEigThreshold(double minEigThreshold)
+    {
+        
         setMinEigThreshold_0(nativeObj, minEigThreshold);
+        
+        return;
     }
 
 
     //
-    // C++:  void cv::SparsePyrLKOpticalFlow::setTermCriteria(TermCriteria crit)
+    // C++:  void setTermCriteria(TermCriteria crit)
     //
 
-    public void setTermCriteria(TermCriteria crit) {
+    //javadoc: SparsePyrLKOpticalFlow::setTermCriteria(crit)
+    public  void setTermCriteria(TermCriteria crit)
+    {
+        
         setTermCriteria_0(nativeObj, crit.type, crit.maxCount, crit.epsilon);
+        
+        return;
     }
 
 
     //
-    // C++:  void cv::SparsePyrLKOpticalFlow::setWinSize(Size winSize)
+    // C++:  void setWinSize(Size winSize)
     //
 
-    public void setWinSize(Size winSize) {
+    //javadoc: SparsePyrLKOpticalFlow::setWinSize(winSize)
+    public  void setWinSize(Size winSize)
+    {
+        
         setWinSize_0(nativeObj, winSize.width, winSize.height);
+        
+        return;
     }
 
 
@@ -150,42 +188,38 @@ public class SparsePyrLKOpticalFlow extends SparseOpticalFlow {
 
 
 
-    // C++: static Ptr_SparsePyrLKOpticalFlow cv::SparsePyrLKOpticalFlow::create(Size winSize = Size(21, 21), int maxLevel = 3, TermCriteria crit = TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01), int flags = 0, double minEigThreshold = 1e-4)
+    // C++: static Ptr_SparsePyrLKOpticalFlow create(Size winSize = Size(21, 21), int maxLevel = 3, TermCriteria crit = TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01), int flags = 0, double minEigThreshold = 1e-4)
     private static native long create_0(double winSize_width, double winSize_height, int maxLevel, int crit_type, int crit_maxCount, double crit_epsilon, int flags, double minEigThreshold);
-    private static native long create_1(double winSize_width, double winSize_height, int maxLevel, int crit_type, int crit_maxCount, double crit_epsilon, int flags);
-    private static native long create_2(double winSize_width, double winSize_height, int maxLevel, int crit_type, int crit_maxCount, double crit_epsilon);
-    private static native long create_3(double winSize_width, double winSize_height, int maxLevel);
-    private static native long create_4(double winSize_width, double winSize_height);
-    private static native long create_5();
+    private static native long create_1();
 
-    // C++:  Size cv::SparsePyrLKOpticalFlow::getWinSize()
+    // C++:  Size getWinSize()
     private static native double[] getWinSize_0(long nativeObj);
 
-    // C++:  TermCriteria cv::SparsePyrLKOpticalFlow::getTermCriteria()
+    // C++:  TermCriteria getTermCriteria()
     private static native double[] getTermCriteria_0(long nativeObj);
 
-    // C++:  double cv::SparsePyrLKOpticalFlow::getMinEigThreshold()
+    // C++:  double getMinEigThreshold()
     private static native double getMinEigThreshold_0(long nativeObj);
 
-    // C++:  int cv::SparsePyrLKOpticalFlow::getFlags()
+    // C++:  int getFlags()
     private static native int getFlags_0(long nativeObj);
 
-    // C++:  int cv::SparsePyrLKOpticalFlow::getMaxLevel()
+    // C++:  int getMaxLevel()
     private static native int getMaxLevel_0(long nativeObj);
 
-    // C++:  void cv::SparsePyrLKOpticalFlow::setFlags(int flags)
+    // C++:  void setFlags(int flags)
     private static native void setFlags_0(long nativeObj, int flags);
 
-    // C++:  void cv::SparsePyrLKOpticalFlow::setMaxLevel(int maxLevel)
+    // C++:  void setMaxLevel(int maxLevel)
     private static native void setMaxLevel_0(long nativeObj, int maxLevel);
 
-    // C++:  void cv::SparsePyrLKOpticalFlow::setMinEigThreshold(double minEigThreshold)
+    // C++:  void setMinEigThreshold(double minEigThreshold)
     private static native void setMinEigThreshold_0(long nativeObj, double minEigThreshold);
 
-    // C++:  void cv::SparsePyrLKOpticalFlow::setTermCriteria(TermCriteria crit)
+    // C++:  void setTermCriteria(TermCriteria crit)
     private static native void setTermCriteria_0(long nativeObj, int crit_type, int crit_maxCount, double crit_epsilon);
 
-    // C++:  void cv::SparsePyrLKOpticalFlow::setWinSize(Size winSize)
+    // C++:  void setWinSize(Size winSize)
     private static native void setWinSize_0(long nativeObj, double winSize_width, double winSize_height);
 
     // native support for java finalize()

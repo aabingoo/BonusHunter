@@ -45,13 +45,13 @@
 #import <Accelerate/Accelerate.h>
 #import <AVFoundation/AVFoundation.h>
 #import <ImageIO/ImageIO.h>
-#include "opencv2/core.hpp"
+#include "opencv2/core/core.hpp"
 
 //! @addtogroup imgcodecs_ios
 //! @{
 
-CV_EXPORTS UIImage* MatToUIImage(const cv::Mat& image);
-CV_EXPORTS void UIImageToMat(const UIImage* image,
-                             cv::Mat& m, bool alphaExist = false);
+UIImage* MatToUIImage(const cv::Mat& image);
+void UIImageToMat(const UIImage* image,
+                         cv::Mat& m, bool alphaExist = false);
 
 //! @}

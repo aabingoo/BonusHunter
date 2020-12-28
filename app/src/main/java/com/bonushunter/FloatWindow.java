@@ -1,6 +1,8 @@
 package com.bonushunter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Build;
@@ -85,6 +87,7 @@ public class FloatWindow implements View.OnTouchListener {
         mContent2.setVisibility(View.GONE);
         mTaskDesc2 = mFloatView.findViewById(R.id.task_desc2);
         mRemainTime2 = mFloatView.findViewById(R.id.remain_time2);
+
         mExpend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -94,30 +97,49 @@ public class FloatWindow implements View.OnTouchListener {
                 } else {
                     mStartBtn.setVisibility(View.GONE);
                 }
+
+                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
+                mScreenManager.findViewBySIFT(xigua_fudai);
             }
         });
+
+        mRemainTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
+                mScreenManager.findViewBySURF(xigua_fudai);
+            }
+        });
+
+
         mStartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mShown) {
-                            mStopLatch = new CountDownLatch(mRunningApps.size());
-                            for (IAppRobot appRobot: mRunningApps) {
-                                appRobot.stop(mStopLatch);
-                            }
-                            try {
-                                mStopLatch.await();
-                                mRunningApps.clear();
-                                mShown = false;
-                                mWindowManager.removeView(mFloatView);
-                            } catch (Exception e) {
-                                Log.d(TAG, "stop error:" + e.toString());
-                            }
-                        }
-                    }
-                }).start();
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if (mShown) {
+//                            mStopLatch = new CountDownLatch(mRunningApps.size());
+//                            for (IAppRobot appRobot: mRunningApps) {
+//                                appRobot.stop(mStopLatch);
+//                            }
+//                            try {
+//                                mStopLatch.await();
+//                                mRunningApps.clear();
+//                                mShown = false;
+//                                mWindowManager.removeView(mFloatView);
+//                            } catch (Exception e) {
+//                                Log.d(TAG, "stop error:" + e.toString());
+//                            }
+//                        }
+//                    }
+//                }).start();
+
+                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
+//                mScreenManager.findViewBySURF(xigua_fudai);
+//                mScreenManager.findViewBySURF(xigua_fudai);
+                mScreenManager.findViewByFAST(xigua_fudai);
+
 
 
 //                List<AccessibilityNodeInfo> mBottomNavNodes = mScreenManager.getViewsById("今日头条极速版",
