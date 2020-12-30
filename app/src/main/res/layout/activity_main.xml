@@ -31,8 +31,8 @@
         android:textColor="@android:color/white"
         android:text="启动"/>
 
-    <ImageView
-        android:id="@+id/img"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+<!--    <ImageView-->
+<!--        android:id="@+id/img"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"/>-->
 </LinearLayout>

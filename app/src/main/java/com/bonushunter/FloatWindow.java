@@ -98,8 +98,9 @@ public class FloatWindow implements View.OnTouchListener {
                     mStartBtn.setVisibility(View.GONE);
                 }
 
-                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
-                mScreenManager.findViewBySIFT(xigua_fudai);
+//                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
+//                mScreenManager.findViewBySIFT(xigua_fudai);
+                mScreenManager.getWholeTextByStartString("快手极速版", "subin");
             }
         });
 
@@ -115,9 +116,17 @@ public class FloatWindow implements View.OnTouchListener {
         mStartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                new Thread(new Runnable() {
-//                    @Override
-//                    public void run() {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mShown) {
+                            for (IAppRobot appRobot: mRunningApps) {
+                                appRobot.stop(mStopLatch);
+                                mRunningApps.clear();
+                                mShown = false;
+                                mWindowManager.removeView(mFloatView);
+                            }
+                        }
 //                        if (mShown) {
 //                            mStopLatch = new CountDownLatch(mRunningApps.size());
 //                            for (IAppRobot appRobot: mRunningApps) {
@@ -132,13 +141,13 @@ public class FloatWindow implements View.OnTouchListener {
 //                                Log.d(TAG, "stop error:" + e.toString());
 //                            }
 //                        }
-//                    }
-//                }).start();
+                    }
+                }).start();
 
-                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
+//                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
 //                mScreenManager.findViewBySURF(xigua_fudai);
 //                mScreenManager.findViewBySURF(xigua_fudai);
-                mScreenManager.findViewByFAST(xigua_fudai);
+//                mScreenManager.findViewByFAST(xigua_fudai);
 
 
 

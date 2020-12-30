@@ -66,7 +66,7 @@ public class TouTiaoAppRobot extends BaseAppRobot {
 
                     boxOpened = false;
                 }
-                if (!mScreenManager.tapViewByText("重播")) {
+                if (!mScreenManager.tapViewByText(mAppTitle, "重播")) {
                     updateFloatPrompt("看视频赚钱中");
                     List<AccessibilityNodeInfo> mNodes = mScreenManager.getViewsById("今日头条极速版",
                         "com.ss.android.article.lite:id/iy");

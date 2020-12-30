@@ -79,168 +79,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAppsRG.setOnCheckedChangeListener(this);
         mStartBtn.setOnClickListener(this);
 
-        mImageView = findViewById(R.id.img);
+        // init manager
         mScreenManager = ScreenManager.getInstance(this);
-        mScreenManager.setFindView(new ScreenManager.IFindView() {
-            @Override
-            public void onFind(final Bitmap bitmap) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mImageView.setImageBitmap(bitmap);
-                    }
-                });
-            }
-        });
-
-
-
-
-//        Log.d(TAG, "isAccessibilityEnabled:" + Utils.isAccessibilityEnabled(this));
-//        Log.d(TAG, "isAccessibilitySettingsOn:" + Utils.isAccessibilitySettingsOn(this,
-//                BHAccessibilityService.class.getCanonicalName()));
-//
-////        if (!Utils.isAccessibilityEnabled(this) ||
-//////                !Utils.isAccessibilitySettingsOn(this,
-//////                        BHAccessibilityService.class.getCanonicalName())) {
-//////            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-//////        }
-//
-//        FloatWindow.getInstance(this.getApplicationContext()).requestPermissionIfNeed();
-//        FloatWindow.getInstance(this.getApplicationContext()).show();
-
-//        staticLoadCVLibraries();
-//
-//        staticLoadCVLibraries();
-
-////        String sdcardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-////        Log.d(TAG, "sdcardPath:" + sdcardPath);
-////
-        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua);
-//        mImageView.setImageBitmap(xigua);
-        final Bitmap xigua_fudai = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_fudai);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                Mat sourceImage = new Mat();
-                Utils.bitmapToMat(xigua, sourceImage, true);
-                Mat templateImage = new Mat();
-                Utils.bitmapToMat(xigua_fudai, templateImage, true);
-
-//                MatOfKeyPoint templateMatOfKeyPoints = new MatOfKeyPoint();
-////                FastFeatureDetector fastFeatureDetector = FastFeatureDetector.create();
-//                SURF surf = SURF.create();
-//
-//                surf.detect(templateImage, templateMatOfKeyPoints);
-//
-//
-//                Mat templateDescriptor = new Mat();
-//                surf.compute(templateImage, templateMatOfKeyPoints, templateDescriptor);
-//
-//                //显示模板图的特征点图片
-//                Mat outputImage = new Mat(templateImage.rows(), templateImage.cols(), CvType.CV_32FC1);
-//                Features2d.drawKeypoints(templateImage, templateMatOfKeyPoints, outputImage, new Scalar(255, 0, 0, 255), 0);
-//                Utils.matToBitmap(outputImage, xigua_fudai);
-//
+//        mImageView = findViewById(R.id.img);
+//        mScreenManager.setFindView(new ScreenManager.IFindView() {
+//            @Override
+//            public void onFind(final Bitmap bitmap) {
 //                runOnUiThread(new Runnable() {
 //                    @Override
 //                    public void run() {
-//                        mImageView.setImageBitmap(xigua_fudai);
+//                        mImageView.setImageBitmap(bitmap);
 //                    }
 //                });
-
-
-//                SURF surf = SURF.create();
-
-
-//                mScreenManager.findViewByFAST(xigua, xigua_fudai);
-//                mScreenManager.findViewBySURF(xigua, xigua_fudai);
-
-
-
-//                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1, new Mat());
-//                Log.d(TAG, "r:" + ret.rows() + ", c:" + ret.cols());
-//                double limit = 0.1;
-//                int diff = 10;
-//                List<Point> hitPoints = new ArrayList<>();
-//                for (int i = 0; i < ret.rows(); i++) { //y
-//                    for (int j = 0; j < ret.cols(); j++) { //x
-//                        double matchValue = ret.get(i, j)[0];
-////                        Log.d(TAG, "matchValue:" + matchValue);
-//                        if (matchValue < limit) {
-//                            boolean isAlreadyHit = false;
-//                            for (Point hitPoint: hitPoints) {
-////                                int r = temp.width() > temp.height() ? temp.width()/2 : temp.height()/2;
-////                                r += 10;
-////                                if (((hitPoint.x - j) * (hitPoint.x - j) + (hitPoint.y - i) * (hitPoint.y - i))
-////                                        < r * r) {
-////
-////                                    isAlreadyHit = true;
-////                                    continue;
-////                                }
-//
-//                                if (hitPoint.x-diff  <= j && j <= hitPoint.x + temp.width()+diff
-//                                        && hitPoint.y-diff <= i && i <= hitPoint.y + temp.height()+diff) {
-////                                    j +=
-//                                    isAlreadyHit = true;
-//                                    continue;
-//                                }
-//                            }
-//                            if (!isAlreadyHit) {
-//                                hitPoints.add(new Point(j, i));
-//                                Log.d(TAG, "find match: x:" + j + ", y:" + i + ", mat:" + matchValue);
-////                                Imgproc.rectangle(source, new Rect((int)j, (int)i, temp.width(), temp.height()), new Scalar(0, 255, 0), 5);
-//                                Imgproc.drawMarker(source, new Point(j, i), new Scalar(0, 255, 0, 255));
-//                            }
-//                        }
-//                    }
-//                }
-//
-//
-//                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
-//                Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
-//                Point matchLoc = mlr.minLoc;
-//                NumberFormat nf = NumberFormat.getInstance();
-//                nf.setMaximumFractionDigits(20);
-//                nf.setGroupingUsed(false);
-//                Log.d(TAG, "findView x:" + matchLoc.x + ", y:" + matchLoc.y + ", value:" + nf.format(mlr.minVal)
-//                        + ", ma:" + (mlr.minVal < 0));
-//                Imgproc.drawMarker(source, new Point(matchLoc.x, matchLoc.y), new Scalar(0, 255, 0, 255));
-////                Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
-////                        temp.width(), temp.height()), new Scalar(100, 255, 0, 0), 5);
-//                org.opencv.android.Utils.matToBitmap(source, xigua);
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        mImageView.setImageBitmap(xigua);
-//                    }
-//                });
-            }
-        }).start();
-
-
-
-
-
-
-//        Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
-//        Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
-//        Point matchLoc = mlr.minLoc;
-//        Log.d(TAG, "x:" + matchLoc.x + ", y:" + matchLoc.y);
-//
-//
-//
-////        Imgproc.rectangle(source, new Point(100, 100), new Point(100 + 100, 100 + 100), );
-//
-//        Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y, temp.width(), temp.height()), new Scalar(0, 255, 0), 5);
-
-//        Imgproc.rectangle(source, matchLoc, new Point(matchLoc.x + temp.width(), matchLoc.y + temp.height()), new Scalar(111, 111, 111));
-
-
-
-
+//            }
+//        });
     }
 
     @Override
@@ -274,6 +126,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             RadioButton radioButton = new RadioButton(this);
             radioButton.setText(name);
             radioButton.setTag(pkgName);
+            if (AppRobotUtils.PACKAGE_NAME_DEFAULT_SELECTED.equals(pkgName)) {
+                mSelectedPkgName = pkgName;
+                radioButton.setChecked(true);
+            }
             mAppsRG.addView(radioButton);
         }
     }
@@ -368,6 +224,151 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(load) {
             Log.d(TAG, "Open CV Libraries loaded...");
         }
+    }
+
+
+    public void quick() {
+//        Log.d(TAG, "isAccessibilityEnabled:" + Utils.isAccessibilityEnabled(this));
+//        Log.d(TAG, "isAccessibilitySettingsOn:" + Utils.isAccessibilitySettingsOn(this,
+//                BHAccessibilityService.class.getCanonicalName()));
+//
+////        if (!Utils.isAccessibilityEnabled(this) ||
+//////                !Utils.isAccessibilitySettingsOn(this,
+//////                        BHAccessibilityService.class.getCanonicalName())) {
+//////            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+//////        }
+//
+//        FloatWindow.getInstance(this.getApplicationContext()).requestPermissionIfNeed();
+//        FloatWindow.getInstance(this.getApplicationContext()).show();
+
+//        staticLoadCVLibraries();
+//
+//        staticLoadCVLibraries();
+
+////        String sdcardPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+////        Log.d(TAG, "sdcardPath:" + sdcardPath);
+////
+//        final Bitmap xigua = BitmapFactory.decodeResource(getResources(), R.drawable.xigua);
+//        mImageView.setImageBitmap(xigua);
+//        final Bitmap xigua_fudai = BitmapFactory.decodeResource(getResources(), R.drawable.xigua_fudai);
+//
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//                Mat sourceImage = new Mat();
+//                Utils.bitmapToMat(xigua, sourceImage, true);
+//                Mat templateImage = new Mat();
+//                Utils.bitmapToMat(xigua_fudai, templateImage, true);
+//
+//                MatOfKeyPoint templateMatOfKeyPoints = new MatOfKeyPoint();
+////                FastFeatureDetector fastFeatureDetector = FastFeatureDetector.create();
+//                SURF surf = SURF.create();
+//
+//                surf.detect(templateImage, templateMatOfKeyPoints);
+//
+//
+//                Mat templateDescriptor = new Mat();
+//                surf.compute(templateImage, templateMatOfKeyPoints, templateDescriptor);
+//
+//                //显示模板图的特征点图片
+//                Mat outputImage = new Mat(templateImage.rows(), templateImage.cols(), CvType.CV_32FC1);
+//                Features2d.drawKeypoints(templateImage, templateMatOfKeyPoints, outputImage, new Scalar(255, 0, 0, 255), 0);
+//                Utils.matToBitmap(outputImage, xigua_fudai);
+//
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        mImageView.setImageBitmap(xigua_fudai);
+//                    }
+//                });
+
+
+//                SURF surf = SURF.create();
+
+
+//                mScreenManager.findViewByFAST(xigua, xigua_fudai);
+//                mScreenManager.findViewBySURF(xigua, xigua_fudai);
+
+
+
+//                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1, new Mat());
+//                Log.d(TAG, "r:" + ret.rows() + ", c:" + ret.cols());
+//                double limit = 0.1;
+//                int diff = 10;
+//                List<Point> hitPoints = new ArrayList<>();
+//                for (int i = 0; i < ret.rows(); i++) { //y
+//                    for (int j = 0; j < ret.cols(); j++) { //x
+//                        double matchValue = ret.get(i, j)[0];
+////                        Log.d(TAG, "matchValue:" + matchValue);
+//                        if (matchValue < limit) {
+//                            boolean isAlreadyHit = false;
+//                            for (Point hitPoint: hitPoints) {
+////                                int r = temp.width() > temp.height() ? temp.width()/2 : temp.height()/2;
+////                                r += 10;
+////                                if (((hitPoint.x - j) * (hitPoint.x - j) + (hitPoint.y - i) * (hitPoint.y - i))
+////                                        < r * r) {
+////
+////                                    isAlreadyHit = true;
+////                                    continue;
+////                                }
+//
+//                                if (hitPoint.x-diff  <= j && j <= hitPoint.x + temp.width()+diff
+//                                        && hitPoint.y-diff <= i && i <= hitPoint.y + temp.height()+diff) {
+////                                    j +=
+//                                    isAlreadyHit = true;
+//                                    continue;
+//                                }
+//                            }
+//                            if (!isAlreadyHit) {
+//                                hitPoints.add(new Point(j, i));
+//                                Log.d(TAG, "find match: x:" + j + ", y:" + i + ", mat:" + matchValue);
+////                                Imgproc.rectangle(source, new Rect((int)j, (int)i, temp.width(), temp.height()), new Scalar(0, 255, 0), 5);
+//                                Imgproc.drawMarker(source, new Point(j, i), new Scalar(0, 255, 0, 255));
+//                            }
+//                        }
+//                    }
+//                }
+//
+//
+//                Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
+//                Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
+//                Point matchLoc = mlr.minLoc;
+//                NumberFormat nf = NumberFormat.getInstance();
+//                nf.setMaximumFractionDigits(20);
+//                nf.setGroupingUsed(false);
+//                Log.d(TAG, "findView x:" + matchLoc.x + ", y:" + matchLoc.y + ", value:" + nf.format(mlr.minVal)
+//                        + ", ma:" + (mlr.minVal < 0));
+//                Imgproc.drawMarker(source, new Point(matchLoc.x, matchLoc.y), new Scalar(0, 255, 0, 255));
+////                Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y,
+////                        temp.width(), temp.height()), new Scalar(100, 255, 0, 0), 5);
+//                org.opencv.android.Utils.matToBitmap(source, xigua);
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        mImageView.setImageBitmap(xigua);
+//                    }
+//                });
+//            }
+//        }).start();
+
+
+
+
+
+
+//        Core.normalize(ret, ret, 0, 1, Core.NORM_MINMAX, -1);
+//        Core.MinMaxLocResult mlr = Core.minMaxLoc(ret);
+//        Point matchLoc = mlr.minLoc;
+//        Log.d(TAG, "x:" + matchLoc.x + ", y:" + matchLoc.y);
+//
+//
+//
+////        Imgproc.rectangle(source, new Point(100, 100), new Point(100 + 100, 100 + 100), );
+//
+//        Imgproc.rectangle(source, new Rect((int)matchLoc.x, (int)matchLoc.y, temp.width(), temp.height()), new Scalar(0, 255, 0), 5);
+
+//        Imgproc.rectangle(source, matchLoc, new Point(matchLoc.x + temp.width(), matchLoc.y + temp.height()), new Scalar(111, 111, 111));
     }
 
 }

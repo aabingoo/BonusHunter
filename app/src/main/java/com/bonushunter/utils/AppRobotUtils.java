@@ -18,6 +18,7 @@ public class AppRobotUtils {
     public static final String PACKAGE_NAME_DOUYIN = "com.ss.android.ugc.aweme.lite";
     public static final String PACKAGE_NAME_TOUTIAO = "com.ss.android.article.lite";
 
+    public static final String PACKAGE_NAME_DEFAULT_SELECTED = PACKAGE_NAME_KUAISHOU;
 
     public static Map<String, String> sSupportApps = new HashMap<String, String>() {
         {

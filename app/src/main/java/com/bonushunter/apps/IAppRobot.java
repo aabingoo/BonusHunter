@@ -10,7 +10,7 @@ public interface IAppRobot {
 
     void stop(CountDownLatch stopLatch);
 
-    void doInBackground();
+    void doInBackground() throws InterruptedException;
 
     void updateFloatPrompt(String prompt);
 

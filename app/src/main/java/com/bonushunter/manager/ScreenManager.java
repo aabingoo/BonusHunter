@@ -14,6 +14,7 @@ import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -45,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 
 import androidx.annotation.NonNull;
+
+import com.bonushunter.utils.LogUtils;
 
 public class ScreenManager {
 
@@ -148,7 +151,7 @@ public class ScreenManager {
             if (appTitle.equals(windowInfo.getTitle())) {
                 AccessibilityNodeInfo rootNode = windowInfo.getRoot();
                 if (rootNode != null) {
-                    loopNode(rootNode, "1231231232");
+                    findNodeByText(rootNode, "1231231232");
                 }
             }
         }
@@ -181,7 +184,7 @@ public class ScreenManager {
             if (appTitle.equals(windowInfo.getTitle())) {
                 AccessibilityNodeInfo rootNode = windowInfo.getRoot();
                 if (rootNode != null) {
-                    List<AccessibilityNodeInfo> targetNodes = rootNode.findAccessibilityNodeInfosByViewId(viewId);
+                    List<AccessibilityNodeInfo> targetNodes = rootNode.findAccessibilityNodeInfosByText(viewId);
                     Log.d(TAG, "tapViewById - targetNodes:" + targetNodes.size());
                     if (targetNodes != null && targetNodes.size() > 0) {
                         AccessibilityNodeInfo targetNode = targetNodes.get(3);
@@ -197,66 +200,199 @@ public class ScreenManager {
         return null;
     }
 
-    public boolean tapViewById(String appTitle, String id) {
-        Log.d(TAG, "tapViewById:" + id);
-        if (mAccessibilityService == null) return false;
+    public String getWholeTextByStartString(String appTitle, String words) {
+        LogUtils.d(TAG, "getWholeTextByStartString - words:" + words);
+        if (mAccessibilityService == null) return null;
 
         for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
-            Log.d(TAG, "tapViewById - window info:" + windowInfo.toString());
+            LogUtils.d(TAG, "getWholeTextByStartString - window info:" + windowInfo.toString());
             if (appTitle.equals(windowInfo.getTitle())) {
                 AccessibilityNodeInfo rootNode = windowInfo.getRoot();
                 if (rootNode != null) {
-                    List<AccessibilityNodeInfo> targetNodes = rootNode.findAccessibilityNodeInfosByViewId(id);
-                    Log.d(TAG, "tapViewById - targetNodes:" + targetNodes.size());
-                    if (targetNodes != null && targetNodes.size() > 0) {
-                        AccessibilityNodeInfo targetNode = targetNodes.get(0);
-                        Log.d(TAG, "tapViewById - targetNodes:" + targetNode.toString());
-                        boolean clickRet = targetNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                        if (!clickRet) {
-                            Rect bound = new Rect();
-                            targetNode.getBoundsInScreen(bound);
-                            tap(bound.centerX(), bound.centerY());
-                            return true;
+                    AccessibilityNodeInfo targetNode = findNodeByTextContains(rootNode, words);
+                    if (targetNode != null) {
+                        LogUtils.d(TAG, "getWholeTextByStartString - find targetNodes:" + targetNode.toString());
+                        String viewText = targetNode.getText().toString().trim();
+                        if (!TextUtils.isEmpty(viewText) && viewText.startsWith(words)) {
+                            return viewText;
                         }
                     }
                 }
             }
         }
+        return null;
+    }
+
+    public boolean tapViewByTextContains(String appTitle, String text) {
+        LogUtils.d(TAG, "tapViewByTextContains - appTitle:" + appTitle + ", text:" + text);
+        boolean clickRet = false;
+        AccessibilityNodeInfo targetNode = findNodeByTextContains(appTitle, text);
+        if (targetNode != null) {
+            clickRet = targetNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            LogUtils.d(TAG, "tapViewByTextContains - targetNodes:" + targetNode.toString() + ", tap ret:" + clickRet);
+            if (!clickRet) {
+                Rect bound = new Rect();
+                targetNode.getBoundsInScreen(bound);
+                tap(bound.centerX(), bound.centerY());
+                clickRet = true;
+            }
+        }
+        return clickRet;
+    }
+
+    public AccessibilityNodeInfo findNodeByTextContains(String appTitle, String words) {
+        LogUtils.d(TAG, "findNodeByTextContains - words:" + words);
+        if (mAccessibilityService == null) return null;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            LogUtils.d(TAG, "findNodeByTextContains - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                AccessibilityNodeInfo rootNode = windowInfo.getRoot();
+                if (rootNode != null) {
+                    AccessibilityNodeInfo targetNode = findNodeByTextContains(rootNode, words);
+                    return targetNode;
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<AccessibilityNodeInfo> findNodesByTextContains(String appTitle, String targetText) {
+        LogUtils.d(TAG, "findNodesByTextContains - targetText:" + targetText);
+        if (mAccessibilityService == null) return null;
+
+        List<AccessibilityNodeInfo> nodeInfos = new ArrayList<>();
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            LogUtils.d(TAG, "findNodeByTextContains - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                AccessibilityNodeInfo rootNode = windowInfo.getRoot();
+                if (rootNode != null) {
+                    findNodesByTextContains(nodeInfos, rootNode, targetText);
+                }
+            }
+        }
+        return nodeInfos;
+    }
+
+    private void findNodesByTextContains(List<AccessibilityNodeInfo> nodes, AccessibilityNodeInfo nodeInfo, String searchText) {
+        if (nodeInfo == null) return ;
+
+        int childCnt = nodeInfo.getChildCount();
+        CharSequence viewText = nodeInfo.getText();
+        if (childCnt == 0 && !TextUtils.isEmpty(viewText)) {
+            if (viewText.toString().trim().contains(searchText)) {
+                nodes.add(nodeInfo);
+            }
+        } else {
+            for (int i = 0; i < childCnt; i++) {
+                findNodesByTextContains(nodes, nodeInfo.getChild(i), searchText);
+            }
+        }
+    }
+
+    private AccessibilityNodeInfo findNodeByTextContains(AccessibilityNodeInfo nodeInfo, String searchText) {
+        if (nodeInfo == null) return null;
+
+        int childCnt = nodeInfo.getChildCount();
+        CharSequence viewText = nodeInfo.getText();
+        LogUtils.d(TAG, "findNodeByTextContains - node info:" + nodeInfo.toString() + "\n childCnt:" + childCnt + "\n viewText:" + viewText);
+        if (childCnt == 0 && !TextUtils.isEmpty(viewText)) {
+            if (viewText.toString().trim().contains(searchText)) {
+                return nodeInfo;
+            } else {
+                return null;
+            }
+        } else {
+            for (int i = 0; i < childCnt; i++) {
+                AccessibilityNodeInfo searchNode = findNodeByTextContains(nodeInfo.getChild(i), searchText);
+                if (searchNode != null) {
+                    return searchNode;
+                }
+            }
+            return null;
+        }
+    }
+
+    public boolean tapViewById(String appTitle, String id) {
+        LogUtils.d(TAG, "tapViewById - appTitle:" + appTitle + ", id:" + id);
+        boolean clickRet = false;
+        AccessibilityNodeInfo targetNode = findNodeById(appTitle, id);
+        if (targetNode != null) {
+            clickRet = targetNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            LogUtils.d(TAG, "tapViewById - targetNodes:" + targetNode.toString() + ", tap ret:" + clickRet);
+            if (!clickRet) {
+                Rect bound = new Rect();
+                targetNode.getBoundsInScreen(bound);
+                tap(bound.centerX(), bound.centerY());
+                clickRet = true;
+            }
+        }
+        return clickRet;
+    }
+
+    public AccessibilityNodeInfo findNodeById(String appTitle, String id) {
+        LogUtils.d(TAG, "findNodeById - appTitle:" + appTitle + ", id:" + id);
+        if (mAccessibilityService == null) return null;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            LogUtils.d(TAG, "findNodeById - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                AccessibilityNodeInfo rootNode = windowInfo.getRoot();
+                if (rootNode != null) {
+                    List<AccessibilityNodeInfo> targetNodes = rootNode.findAccessibilityNodeInfosByViewId(id);
+                    LogUtils.d(TAG, "findNodeById - targetNodes:" + targetNodes.size());
+                    if (targetNodes != null && targetNodes.size() > 0) {
+                        return targetNodes.get(0);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean tapViewByText(String appTitle) {
         return false;
     }
 
-    public boolean tapViewByText(String text) {
-        Log.d(TAG, "tapViewByText:" + text);
-        if (mAccessibilityService == null) return false;
+    public boolean tapViewByText(String appTitle, String text) {
+        LogUtils.d(TAG, "tapViewByText - appTitle:" + appTitle + ", text:" + text);
+        boolean clickRet = false;
+        AccessibilityNodeInfo targetNode = findNodeByText(appTitle, text);
+        if (targetNode != null) {
+            clickRet = targetNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            LogUtils.d(TAG, "tapViewByText - targetNodes:" + targetNode.toString() + ", tap ret:" + clickRet);
+            if (!clickRet) {
+                Rect bound = new Rect();
+                targetNode.getBoundsInScreen(bound);
+                tap(bound.centerX(), bound.centerY());
+                clickRet = true;
+            }
+        }
+        return clickRet;
+    }
+
+    public AccessibilityNodeInfo findNodeByText(String appTitle, String text) {
+        if (mAccessibilityService == null) return null;
 
         for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
-            Log.d(TAG, "window info:" + windowInfo.toString());
-            AccessibilityNodeInfo rootInfo = windowInfo.getRoot();
-            if (rootInfo != null) {
-                Log.d(TAG, "rootInfo info:" + rootInfo.toString());
-                AccessibilityNodeInfo targetNode = loopNode(rootInfo, text);
-                if (targetNode != null) {
-                    boolean clickRet = targetNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    Log.d(TAG, "targetNode:" + targetNode.toString() + " click ret:" + clickRet);
-//                    if (!clickRet) {
-                        Rect bound = new Rect();
-                        targetNode.getBoundsInScreen(bound);
-                        tap(bound.centerX(), bound.centerY());
-                        clickRet = true;
-//                    }
-                    return clickRet;
+            LogUtils.d(TAG, "findNodeByText - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                AccessibilityNodeInfo rootInfo = windowInfo.getRoot();
+                if (rootInfo != null) {
+                    LogUtils.d(TAG, "findNodeByText - rootInfo info:" + rootInfo.toString());
+                    AccessibilityNodeInfo targetNode = findNodeByText(rootInfo, text);
+                    return targetNode;
                 }
             }
         }
 
-        return false;
+        return null;
     }
 
-    private AccessibilityNodeInfo loopNode(AccessibilityNodeInfo nodeInfo, String searchText) {
-
+    private AccessibilityNodeInfo findNodeByText(AccessibilityNodeInfo nodeInfo, String searchText) {
         if (nodeInfo == null) return null;
 
-//        Log.d(TAG, "loopNode:" + nodeInfo.toString());
+        LogUtils.d(TAG, "findNodeByText:" + nodeInfo.toString());
         int childCnt = nodeInfo.getChildCount();
         if (childCnt == 0 && nodeInfo.getText() != null) {
             if (searchText.equals(nodeInfo.getText().toString().trim())) {
@@ -266,7 +402,7 @@ public class ScreenManager {
             }
         } else {
             for (int i = 0; i < childCnt; i++) {
-                AccessibilityNodeInfo searchNode = loopNode(nodeInfo.getChild(i), searchText);
+                AccessibilityNodeInfo searchNode = findNodeByText(nodeInfo.getChild(i), searchText);
                 if (searchNode != null) {
                     return searchNode;
                 }
@@ -852,9 +988,24 @@ public class ScreenManager {
 //        return outImage;
     }
 
+    public boolean tap(AccessibilityNodeInfo nodeInfo) {
+        boolean clickRet = false;
+        if (nodeInfo != null) {
+            clickRet = nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            LogUtils.d(TAG, "tap - nodeInfo:" + nodeInfo.toString() + ", tap ret:" + clickRet);
+            if (!clickRet) {
+                Rect bound = new Rect();
+                nodeInfo.getBoundsInScreen(bound);
+                tap(bound.centerX(), bound.centerY());
+                return true;
+            }
+        }
+        return clickRet;
+    }
+
     public void tap(int x, int y) {
         if (mAccessibilityService == null) return;
-        Log.d(TAG, "tap - x:" + x + ", y:" + y);
+        LogUtils.d(TAG, "tap - x:" + x + ", y:" + y);
 
         Path path = new Path();
         path.moveTo(x, y);
@@ -868,13 +1019,13 @@ public class ScreenManager {
             @Override
             public void onCompleted(GestureDescription gestureDescription) {
                 super.onCompleted(gestureDescription);
-                Log.d(TAG, "onCompleted");
+                LogUtils.d(TAG, "onCompleted");
             }
 
             @Override
             public void onCancelled(GestureDescription gestureDescription) {
                 super.onCancelled(gestureDescription);
-                Log.d(TAG, "onCancelled");
+                LogUtils.d(TAG, "onCancelled");
             }
         }, null);
     }
