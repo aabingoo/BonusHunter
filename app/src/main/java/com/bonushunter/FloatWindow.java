@@ -100,7 +100,7 @@ public class FloatWindow implements View.OnTouchListener {
 
 //                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
 //                mScreenManager.findViewBySIFT(xigua_fudai);
-                mScreenManager.getWholeTextByStartString("快手极速版", "subin");
+                mScreenManager.loopAllViews();
             }
         });
 

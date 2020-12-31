@@ -200,6 +200,41 @@ public class ScreenManager {
         return null;
     }
 
+    public void loopAllViews() {
+        LogUtils.d(TAG, "loopAllViews");
+        if (mAccessibilityService == null) return ;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            LogUtils.d(TAG, "loopAllViews - window info:" + windowInfo.toString());
+            AccessibilityNodeInfo rootNode = windowInfo.getRoot();
+            if (rootNode != null) {
+                LogUtils.d(TAG, "loopAllViews - childCnt:" + rootNode.getChildCount()
+                        + ", id:" + rootNode.getViewIdResourceName()
+                        + ", viewTextd:" + rootNode.getText()
+                        + ", node info:" + rootNode.toString());
+                loopAllViews(rootNode, 1);
+            }
+        }
+    }
+
+    public void loopAllViews(AccessibilityNodeInfo node, int dep) {
+        if (node != null) {
+            int childCnt = node.getChildCount();
+            CharSequence viewText = node.getText();
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < dep; i++) {
+                stringBuilder.append(">");
+            }
+            LogUtils.d(TAG, "loopAllViews: " + stringBuilder.toString()
+                    + " childCnt:" + childCnt
+                    + ", id:" + node.getViewIdResourceName()
+                    + ", viewText:" + viewText + ", node info:" + node.toString());
+            for (int i = 0; i < childCnt; i++) {
+                loopAllViews(node.getChild(i), ++dep);
+            }
+        }
+    }
+
     public String getWholeTextByStartString(String appTitle, String words) {
         LogUtils.d(TAG, "getWholeTextByStartString - words:" + words);
         if (mAccessibilityService == null) return null;

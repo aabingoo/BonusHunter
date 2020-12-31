@@ -51,17 +51,23 @@ public class KuaiShouAppRobot extends BaseAppRobot {
     public void doInBackground() throws InterruptedException {
         if (!launchApp()) stop();
 
-//        while (!checkStop()) {
+        while (!checkStop()) {
 
             // check in
             if (!completeCheckIn) {
-//                completeCheckIn =
+                completeCheckIn = checkIn();
                 LogUtils.d(TAG, "completeCheckIn:" + completeCheckIn);
             }
 
             if (!completeOpenBox) {
-//                completeOpenBox = openBox();
+                completeOpenBox = openBox();
                 LogUtils.d(TAG, "completeOpenBox:" + completeOpenBox);
+            }
+
+            // start see AD task
+            if (!completeSeeAD) {
+                completeSeeAD = seeAd();
+                LogUtils.d(TAG, "completeSeeAD:" + completeSeeAD);
             }
 
             if (!completeSeeLive) {
@@ -69,17 +75,11 @@ public class KuaiShouAppRobot extends BaseAppRobot {
                 LogUtils.d(TAG, "completeSeeLive:" + completeSeeLive);
             }
 
-            // start see AD task
-            if (!completeSeeAD) {
-//                completeSeeAD = seeAd();
-                LogUtils.d(TAG, "completeSeeAD:" + completeSeeAD);
-            }
-
             if (!completeSeeVideo) {
-//                completeSeeVideo = seeVideo();
+                completeSeeVideo = seeVideo();
                 LogUtils.d(TAG, "completeSeeVideo:" + completeSeeVideo);
             }
-//        }
+        }
     }
 
     private boolean launchApp() {
@@ -95,7 +95,30 @@ public class KuaiShouAppRobot extends BaseAppRobot {
     // 邀请好友赚更多
     // 立即签到
     // 已连续签到
-    public boolean checkIn() {
+    public boolean checkIn() throws InterruptedException {
+        LogUtils.d(TAG, "checkIn");
+        if (checkStop()) return false;
+
+        handleUnexpectedView();
+
+        // Enter task list view
+        if (!gotoTaskList()) {
+            // Enter task list view failed, exit.
+            return false;
+        }
+
+        if (tryFindViewByTextContains("已连续签到", 5) != null) {
+            return true;
+        }
+
+        // 立即签到 -> 今天已签 -> 关闭
+        tryTapViewByTextContains("去签到", 5);
+        if (tryTapViewByTextContains("立即签到", 5)) {
+            if (tryFindViewByTextContains("今日已签", 5) != null) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -167,6 +190,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
                     Thread.sleep(35 * 1000);
                     ScreenManager.getInstance(getContext()).swipeUp(mAppTitle);
                 }
+                mScreenManager.back();
                 return true;
             }
             return false;
@@ -343,8 +367,8 @@ public class KuaiShouAppRobot extends BaseAppRobot {
     }
 
     // 我知道了 com.kuaishou.nebula:id/positive
-    public void handleUnexpectedView() {
-
+    public void handleUnexpectedView() throws InterruptedException {
+        tryTapViewById("com.kuaishou.nebula:id/positive", 5);
     }
 
     public AccessibilityNodeInfo tryFindViewById(String id, int tryCnt) throws InterruptedException {

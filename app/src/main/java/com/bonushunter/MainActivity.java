@@ -126,10 +126,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             RadioButton radioButton = new RadioButton(this);
             radioButton.setText(name);
             radioButton.setTag(pkgName);
-            if (AppRobotUtils.PACKAGE_NAME_DEFAULT_SELECTED.equals(pkgName)) {
-                mSelectedPkgName = pkgName;
-                radioButton.setChecked(true);
-            }
+//            if (AppRobotUtils.PACKAGE_NAME_DEFAULT_SELECTED.equals(pkgName)) {
+//                mSelectedPkgName = pkgName;
+//                radioButton.setChecked(true);
+//            }
             mAppsRG.addView(radioButton);
         }
     }

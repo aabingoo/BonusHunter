@@ -7,6 +7,7 @@ import com.bonushunter.manager.ScreenManager;
 import com.bonushunter.task.ITask;
 import com.bonushunter.task.LaunchAppTask;
 import com.bonushunter.utils.AppRobotUtils;
+import com.bonushunter.utils.LogUtils;
 
 public class DouYinAppRobot extends BaseAppRobot {
 
@@ -23,17 +24,16 @@ public class DouYinAppRobot extends BaseAppRobot {
     }
 
     @Override
-    public void doInBackground() {
-        launchApp();
+    public void doInBackground() throws InterruptedException {
+        if (!launchApp()) stop();
 
-        seeVideo();
+//        seeVideo();
     }
 
-    private void launchApp() {
+    private boolean launchApp() {
         // start app to foreground
-        updateFloatPrompt("启动抖音极速版中");
-        AppRobotUtils.launchApp(getContext(), mPackageName);
-        wait(10);
+        LogUtils.d(TAG, "启动抖音极速版中");
+        return AppRobotUtils.launchApp(getContext(), mPackageName);
     }
 
     private void seeVideo() {
