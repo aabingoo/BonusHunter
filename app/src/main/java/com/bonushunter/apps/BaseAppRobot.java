@@ -81,12 +81,12 @@ public abstract class BaseAppRobot implements IAppRobot {
 
     @Override
     public void updateFloatPrompt(final String prompt) {
-//        mUiHandler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                mDescView.setText(prompt);
-//            }
-//        });
+        mUiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mDescView.setText(prompt);
+            }
+        });
     }
 
     private volatile int mWaitSeconds;
@@ -127,7 +127,7 @@ public abstract class BaseAppRobot implements IAppRobot {
     private TextView mRemainView;
     @Override
     public void setDescAndRemainView(TextView desc, TextView remain) {
-//        mDescView = desc;
-//        mRemainView = remain;
+        mDescView = desc;
+        mRemainView = remain;
     }
 }

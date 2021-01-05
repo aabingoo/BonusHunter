@@ -446,6 +446,43 @@ public class ScreenManager {
         }
     }
 
+    public int existForGivenTestList(String appTitle, List<String> textList) {
+        if (mAccessibilityService == null) return -1;
+
+        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
+            LogUtils.d(TAG, "existForGivenTestList - window info:" + windowInfo.toString());
+            if (appTitle.equals(windowInfo.getTitle())) {
+                AccessibilityNodeInfo rootInfo = windowInfo.getRoot();
+                if (rootInfo != null) {
+                    return existForGivenTestList(rootInfo, textList);
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    private int existForGivenTestList(AccessibilityNodeInfo nodeInfo, List<String> textList) {
+        LogUtils.d(TAG, "existForGivenTestList:" + nodeInfo.toString());
+        int ret = -1;
+        int childCnt = nodeInfo.getChildCount();
+        if (childCnt == 0 && nodeInfo.getText() != null) {
+            for (int index = 0; index < textList.size(); index++) {
+                if (textList.get(index).equals(nodeInfo.getText().toString().trim())) {
+                    return index;
+                }
+            }
+        } else {
+            for (int i = 0; i < childCnt; i++) {
+                ret = existForGivenTestList(nodeInfo.getChild(i), textList);
+                if (ret > 0) {
+                    break;
+                }
+            }
+        }
+        return ret;
+    }
+
     public Point findView(Bitmap templateBm) {
         Point tapPoint = null;
         Image image = mImageReader.acquireLatestImage();
