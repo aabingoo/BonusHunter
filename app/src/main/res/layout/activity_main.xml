@@ -31,6 +31,17 @@
         android:textColor="@android:color/white"
         android:text="启动"/>
 
+    <Button
+        android:id="@+id/btn_start_click"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/btn_bg"
+        android:textColor="@android:color/white"
+        android:text="Start Click activity"/>
+
+
 <!--    <ImageView-->
 <!--        android:id="@+id/img"-->
 <!--        android:layout_width="match_parent"-->

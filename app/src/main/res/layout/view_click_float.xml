@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_float_view">
+
+    <TextView
+        android:id="@+id/start_btn"
+        android:layout_width="100dp"
+        android:layout_height="36dp"
+        android:textColor="#CCFFFFFF"
+        android:gravity="center"
+        android:background="@drawable/bg_float_view_btn"
+        android:textSize="18sp"
+        android:text="start"/>
+
+    <TextView
+        android:id="@+id/change_btn"
+        android:layout_width="100dp"
+        android:layout_height="36dp"
+        android:textColor="#CCFFFFFF"
+        android:gravity="center"
+        android:background="@drawable/bg_float_view_btn"
+        android:textSize="18sp"
+        android:text="change"/>
+
+    <TextView
+        android:id="@+id/close_btn"
+        android:layout_width="100dp"
+        android:layout_height="36dp"
+        android:textColor="#CCFFFFFF"
+        android:gravity="center"
+        android:background="@drawable/bg_float_view_btn"
+        android:textSize="18sp"
+        android:text="close"/>
+
+</LinearLayout>

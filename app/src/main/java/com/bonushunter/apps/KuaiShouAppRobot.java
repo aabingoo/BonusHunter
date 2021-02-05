@@ -18,19 +18,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
     public static final int SEE_AD_EMPTY_MAX_NUM = 50;
 
-    private static final String[] COPY_FILES = {
-            "xigua/",
-            "server.key",
-            "test_icon.ppm",
-            "endpoint"
-    };
-
-    private ITask mStartTask;
-    private ITask mSeeAdTask;
-
     private String mPackageName = AppRobotUtils.PACKAGE_NAME_KUAISHOU;
-    private int mDisplayWidth;
-    private int mDisplayHeight;
     private ScreenManager mScreenManager;
 
     private boolean completeCheckIn = false;
@@ -41,8 +29,6 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
     public KuaiShouAppRobot(Context context) {
         super(context);
-        mStartTask = new LaunchAppTask(context, AppRobotUtils.PACKAGE_NAME_KUAISHOU, 10);
-
         mScreenManager = ScreenManager.getInstance(getContext());
         mAppTitle = "快手极速版";
     }
@@ -87,7 +73,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
     // 我知道了 com.kuaishou.nebula:id/positive
     public void handleUnexpectedView() throws InterruptedException {
         updateFloatPrompt("检查弹窗中");
-        tryTapViewById("com.kuaishou.nebula:id/positive", 5);
+        tryTapViewById("com.kuaishou.nebula:id/positive", 10);
     }
 
     private boolean launchApp() {
@@ -108,13 +94,13 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         LogUtils.d(TAG, "checkIn");
         if (checkStop()) return false;
 
-        handleUnexpectedView();
-
         // Enter task list view
         if (!gotoTaskList()) {
             // Enter task list view failed, exit.
             return false;
         }
+
+        handleUnexpectedView();
 
         updateFloatPrompt("签到中");
 
@@ -172,9 +158,6 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             return false;
         }
 
-        // handle unexpected view if necessary
-        handleUnexpectedView();
-
         updateFloatPrompt("看广告中");
 
         // start to see ad
@@ -208,12 +191,12 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             if (seeLiveNodes != null && seeLiveNodes.size() > 0) {
                 mScreenManager.tap(seeLiveNodes.get(seeLiveNodes.size() - 1));
                 int cnt = remainNum;
-                while (cnt-- > 0) {
+                while (cnt++ < 10) {
                     Thread.sleep(35 * 1000);
                     ScreenManager.getInstance(getContext()).swipeUp(mAppTitle);
                 }
                 mScreenManager.back();
-                return true;
+                return seeLive();
             }
             return false;
         } else {
@@ -282,7 +265,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             return false;
         } else if (adRemainNum < 10) {
             // see Ad
-            if (tryTapViewByTextContains("福利", 5)) {
+            if (tryTapViewByFuzzySearch("android.widget.Button", "福利", 5)) {
                 if (handleSeeAd()) {
                     maxEmptyNum = SEE_AD_EMPTY_MAX_NUM;
                 } else {
@@ -307,16 +290,18 @@ public class KuaiShouAppRobot extends BaseAppRobot {
                 .findNodeById(mAppTitle, "com.kuaishou.nebula:id/empty_btn");
         AccessibilityNodeInfo countdownNode = mScreenManager
                 .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_countdown");
-        AccessibilityNodeInfo retryBtnNode = mScreenManager.findNodeByText(mAppTitle, "点击重试");
-        int tryCnt = 10;
-        while (emptyBtnNode == null && countdownNode == null && retryBtnNode == null && tryCnt-- > 0) {
+        AccessibilityNodeInfo retryBtnNode = mScreenManager
+                .findNodeById(mAppTitle, "com.kuaishou.nebula:id/award_video_play_retry_btn");
+        int tryCnt = 15;
+        while (emptyBtnNode == null && countdownNode == null && retryBtnNode == null) {
             LogUtils.d(TAG, "startSeeAd - Not found empty or countdown, sleep 1s, remain retry cnt:" + tryCnt);
             Thread.sleep(1000);
             emptyBtnNode = mScreenManager
                     .findNodeById(mAppTitle, "com.kuaishou.nebula:id/empty_btn");
             countdownNode = mScreenManager
                     .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_countdown");
-            retryBtnNode = mScreenManager.findNodeByText(mAppTitle, "点击重试");
+            retryBtnNode = mScreenManager
+                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/award_video_play_retry_btn");
         }
 
         if (emptyBtnNode != null) {
@@ -324,6 +309,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             mScreenManager.tap(emptyBtnNode);
             return false;
         } else if (retryBtnNode != null) {
+            LogUtils.d(TAG, "startSeeAd - find retry");
             mScreenManager.tap(retryBtnNode);
             return handleSeeAd();
         } else if (countdownNode != null) {
@@ -485,6 +471,20 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             nodeInfos = mScreenManager.findNodesByTextContains(mAppTitle, text);
         }
         return nodeInfos;
+    }
+
+    public boolean tryTapViewByFuzzySearch(String clazz, String searchWords, int tryCnt) throws InterruptedException {
+        LogUtils.d(TAG, "tryTapViewByFuzzySearch - clazz:" + clazz
+                + ", searchWords" + searchWords + ", retry cnt:" + tryCnt);
+        if (checkStop()) return false;
+
+        while (!mScreenManager.tapViewByFuzzySearch(mAppTitle, clazz, searchWords)
+                && tryCnt-- > 0) {
+            LogUtils.d(TAG, "tryTapViewByTextContains - Not found, sleep 1s, remain retry cnt:" + tryCnt);
+            if (checkStop()) return false;
+            Thread.sleep(1000);
+        }
+        return tryCnt > 0;
     }
 
     public boolean tryTapViewByTextContains(String text, int tryCnt) throws InterruptedException {

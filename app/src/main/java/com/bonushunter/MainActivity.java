@@ -1,8 +1,11 @@
 package com.bonushunter;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.projection.MediaProjectionManager;
@@ -93,6 +96,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                });
 //            }
 //        });
+
+        requestSdcardPermissionIfNeed(this);
+
+
+        findViewById(R.id.btn_start_click).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, ClickActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+    }
+
+    private static final int REQUEST_CODE_PERMISSIONS = 2;
+
+    public static void requestSdcardPermissionIfNeed(Activity activity) {
+        String[] s = {Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE};
+        List<String> mlist = new ArrayList<String>();
+        for (int i = 0; i < s.length; i++) {
+            int hasWriteStoragePermission = activity.checkSelfPermission(s[i]);
+            if (hasWriteStoragePermission != PackageManager.PERMISSION_GRANTED) {
+                mlist.add(s[i]);
+            }
+        }
+        if (mlist.size() > 0) {
+            activity.requestPermissions(mlist.toArray(new String[mlist.size()]),
+                    REQUEST_CODE_PERMISSIONS);
+        }
     }
 
     @Override
