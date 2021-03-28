@@ -115,48 +115,6 @@ public class ScreenManager {
         return false;
     }
 
-    public void findView(String title) {
-        if (mAccessibilityService != null) {
-            AccessibilityNodeInfo windowNode = mAccessibilityService.getRootInActiveWindow();
-            if (windowNode != null) {
-                List<AccessibilityNodeInfo> targetNodes = windowNode.findAccessibilityNodeInfosByText(title);
-                for (AccessibilityNodeInfo nodeInfo: targetNodes) {
-                    Log.d(TAG, "nodeInfo:" + nodeInfo.toString());
-                }
-            }
-        }
-    }
-
-    public interface IFindView {
-        void onFind(Bitmap bitmap);
-    }
-
-    public IFindView mFindView;
-    public void setFindView(IFindView findView) {
-        mFindView = findView;
-    }
-
-    public void back() {
-        Log.d(TAG, "back:");
-        if (mAccessibilityService == null) return ;
-
-        mAccessibilityService.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
-    }
-
-    public void findViews(String appTitle) {
-        if (mAccessibilityService == null) return;
-
-        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
-            Log.d(TAG, "tapViewById - window info:" + windowInfo.toString());
-            if (appTitle.equals(windowInfo.getTitle())) {
-                AccessibilityNodeInfo rootNode = windowInfo.getRoot();
-                if (rootNode != null) {
-                    findNodeByText(rootNode, "1231231232");
-                }
-            }
-        }
-    }
-
     public List<AccessibilityNodeInfo> getViewsById(String appTitle, String viewId) {
         Log.d(TAG, "getViewText:" + viewId);
         if (mAccessibilityService == null) return null;
@@ -169,31 +127,6 @@ public class ScreenManager {
                     List<AccessibilityNodeInfo> targetNodes = rootNode.findAccessibilityNodeInfosByViewId(viewId);
                     Log.d(TAG, "tapViewById - targetNodes:" + targetNodes.size());
                     return targetNodes;
-                }
-            }
-        }
-        return null;
-    }
-
-    public String getViewText(String appTitle, String viewId) {
-        Log.d(TAG, "getViewText:" + viewId);
-        if (mAccessibilityService == null) return null;
-
-        for (AccessibilityWindowInfo windowInfo: mAccessibilityService.getWindows()) {
-            Log.d(TAG, "tapViewById - window info:" + windowInfo.toString());
-            if (appTitle.equals(windowInfo.getTitle())) {
-                AccessibilityNodeInfo rootNode = windowInfo.getRoot();
-                if (rootNode != null) {
-                    List<AccessibilityNodeInfo> targetNodes = rootNode.findAccessibilityNodeInfosByText(viewId);
-                    Log.d(TAG, "tapViewById - targetNodes:" + targetNodes.size());
-                    if (targetNodes != null && targetNodes.size() > 0) {
-                        AccessibilityNodeInfo targetNode = targetNodes.get(3);
-                        Log.d(TAG, "tapViewById - targetNodes:" + targetNode.toString());
-                        if (targetNode.getText() != null) {
-                            return targetNode.getText().toString();
-                        }
-                        return null;
-                    }
                 }
             }
         }
@@ -540,6 +473,15 @@ public class ScreenManager {
             }
         }
         return ret;
+    }
+
+    public interface IFindView {
+        void onFind(Bitmap bitmap);
+    }
+
+    public IFindView mFindView;
+    public void setFindView(IFindView findView) {
+        mFindView = findView;
     }
 
     public Point findView(Bitmap templateBm) {
@@ -1117,6 +1059,18 @@ public class ScreenManager {
 //        DescriptorMatcher descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
 //        descriptorMatcher.knnMatch();
 //        return outImage;
+    }
+
+
+    /**
+     * Screen actions
+     */
+
+    public void back() {
+        Log.d(TAG, "back:");
+        if (mAccessibilityService == null) return ;
+
+        mAccessibilityService.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
     }
 
     public boolean tap(AccessibilityNodeInfo nodeInfo) {

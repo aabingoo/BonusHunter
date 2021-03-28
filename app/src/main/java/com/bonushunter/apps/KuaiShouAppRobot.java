@@ -3,6 +3,7 @@ package com.bonushunter.apps;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Toast;
 
 import com.bonushunter.manager.ScreenManager;
 import com.bonushunter.task.ITask;
@@ -37,7 +38,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
     public void doInBackground() throws InterruptedException {
         if (!launchApp()) stop();
 
-        handleUnexpectedView();
+        handleUnexpectedView(15);
 
         while (!checkStop()) {
 
@@ -71,9 +72,9 @@ public class KuaiShouAppRobot extends BaseAppRobot {
     }
 
     // 我知道了 com.kuaishou.nebula:id/positive
-    public void handleUnexpectedView() throws InterruptedException {
+    public void handleUnexpectedView(int tryCnt) throws InterruptedException {
         updateFloatPrompt("检查弹窗中");
-        tryTapViewById("com.kuaishou.nebula:id/positive", 10);
+        tryTapViewById("com.kuaishou.nebula:id/positive", tryCnt);
     }
 
     private boolean launchApp() {
@@ -97,10 +98,11 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         // Enter task list view
         if (!gotoTaskList()) {
             // Enter task list view failed, exit.
+            updateFloatPrompt("失败退出");
             return false;
         }
 
-        handleUnexpectedView();
+        handleUnexpectedView(10);
 
         updateFloatPrompt("签到中");
 
@@ -133,13 +135,14 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         // Enter task list view
         if (!gotoTaskList()) {
             // Enter task list view failed, exit.
+            updateFloatPrompt("失败退出");
             return false;
         }
 
         updateFloatPrompt("开宝箱中");
-        if (tryTapViewByTextContains("开宝箱得金币", 5)) {
+        if (tryTapParentThatContains("开宝箱得金币", 5)) {
             LogUtils.d(TAG, "openBox - try to see ad for more");
-            if (tryTapViewByTextContains("看精彩视频赚更多", 5)) {
+            if (tryTapParentThatContains("看精彩视频赚更多", 20)) {
                 LogUtils.d(TAG, "openBox - try to close see ad");
                 handleSeeAd();
             }
@@ -155,6 +158,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         // Enter task list view
         if (!gotoTaskList()) {
             // Enter task list view failed, exit.
+            updateFloatPrompt("失败退出");
             return false;
         }
 
@@ -176,6 +180,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         // Enter task list view
         if (!gotoTaskList()) {
             // Enter task list view failed, exit.
+            updateFloatPrompt("失败退出");
             return false;
         }
 
@@ -192,10 +197,41 @@ public class KuaiShouAppRobot extends BaseAppRobot {
                 mScreenManager.tap(seeLiveNodes.get(seeLiveNodes.size() - 1));
                 int cnt = remainNum;
                 while (cnt++ < 10) {
-                    Thread.sleep(35 * 1000);
+                    AccessibilityNodeInfo awardCountDownNode =
+                            tryFindViewById("com.kuaishou.nebula:id/award_count_down_text", 15);
+                    if (awardCountDownNode != null) {
+                        String countDownText = awardCountDownNode.getText().toString();
+                        int minutes = Integer.valueOf(countDownText.split(":")[0]);
+                        int seconds = Integer.valueOf(countDownText.split(":")[1]);
+                        int countDown = minutes * 60 + seconds;
+                        LogUtils.d(TAG, "minutes:" + minutes + ", seconds:" + seconds + ", countDown:" + countDown);
+                        AccessibilityNodeInfo earnedNode = mScreenManager
+                                .findNodeById(mAppTitle, "com.kuaishou.nebula:id/earn_fans_top_coin_count_group");
+                        if (countDown <= 0) {
+                            countDown = 61;
+                        }
+                        while (earnedNode == null && countDown-- >= 0) {
+                            AccessibilityNodeInfo closeNode = mScreenManager
+                                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/live_red_packet_container_close_view");
+                            if (closeNode != null) {
+                                mScreenManager.tap(closeNode);
+                            }
+                            closeNode = mScreenManager
+                                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/close");
+                            if (closeNode != null) {
+                                mScreenManager.tap(closeNode);
+                            }
+                            Thread.sleep(1000);
+                            earnedNode = mScreenManager
+                                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/earn_fans_top_coin_count_group");
+                        }
+                    } else {
+                        break;
+                    }
                     ScreenManager.getInstance(getContext()).swipeUp(mAppTitle);
                 }
                 mScreenManager.back();
+                tryTapViewById("com.kuaishou.nebula:id/exit_btn", 3);
                 return seeLive();
             }
             return false;
@@ -288,20 +324,24 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         // com.kuaishou.nebula:id/empty_msg
         AccessibilityNodeInfo emptyBtnNode = mScreenManager
                 .findNodeById(mAppTitle, "com.kuaishou.nebula:id/empty_btn");
-        AccessibilityNodeInfo countdownNode = mScreenManager
-                .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_countdown");
+//        AccessibilityNodeInfo countdownNode = mScreenManager
+//                .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_countdown");
         AccessibilityNodeInfo retryBtnNode = mScreenManager
                 .findNodeById(mAppTitle, "com.kuaishou.nebula:id/award_video_play_retry_btn");
+        AccessibilityNodeInfo closeNode = mScreenManager
+                .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_close_icon");
         int tryCnt = 15;
-        while (emptyBtnNode == null && countdownNode == null && retryBtnNode == null) {
+        while (emptyBtnNode == null /*&& countdownNode == null*/ && retryBtnNode == null && closeNode == null) {
             LogUtils.d(TAG, "startSeeAd - Not found empty or countdown, sleep 1s, remain retry cnt:" + tryCnt);
             Thread.sleep(1000);
             emptyBtnNode = mScreenManager
                     .findNodeById(mAppTitle, "com.kuaishou.nebula:id/empty_btn");
-            countdownNode = mScreenManager
-                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_countdown");
+//            countdownNode = mScreenManager
+//                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_countdown");
             retryBtnNode = mScreenManager
                     .findNodeById(mAppTitle, "com.kuaishou.nebula:id/award_video_play_retry_btn");
+            closeNode = mScreenManager
+                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_close_icon");
         }
 
         if (emptyBtnNode != null) {
@@ -312,19 +352,31 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             LogUtils.d(TAG, "startSeeAd - find retry");
             mScreenManager.tap(retryBtnNode);
             return handleSeeAd();
-        } else if (countdownNode != null) {
-            LogUtils.d(TAG, "startSeeAd - find count down");
-            AccessibilityNodeInfo closeNode = mScreenManager
-                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_close_icon");
-            while (closeNode == null) {
-                LogUtils.d(TAG, "startSeeAd - Not found closeNode, sleep 1s");
-                Thread.sleep(1000);
-                closeNode = mScreenManager
-                        .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_close_icon");
-            }
-            LogUtils.d(TAG, "startSeeAd - close to continue next see AD.");
+        }
+//        else if (countdownNode != null) {
+//            LogUtils.d(TAG, "startSeeAd - find count down");
+//            closeNode = mScreenManager
+//                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_close_icon");
+//            while (closeNode == null) {
+//                LogUtils.d(TAG, "startSeeAd - Not found closeNode, sleep 1s");
+//                Thread.sleep(1000);
+//                closeNode = mScreenManager
+//                        .findNodeById(mAppTitle, "com.kuaishou.nebula:id/video_close_icon");
+//            }
+//            LogUtils.d(TAG, "startSeeAd - close to continue next see AD.");
+//            if (!mScreenManager.tap(closeNode)) {
+//                mScreenManager.back();
+//            }
+//        }
+        else if (closeNode != null) {
+            LogUtils.d(TAG, "startSeeAd - find close node");
+//            if (tryFindViewByTextContains("退出", 5)
             if (!mScreenManager.tap(closeNode)) {
                 mScreenManager.back();
+            }
+
+            if (tryTapViewById("com.kuaishou.nebula:id/award_video_close_dialog_ensure_button", 3)) {
+                return handleSeeAd();
             }
         }
         return true;
@@ -351,7 +403,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
     }
 
     private boolean inTaskListView() throws InterruptedException {
-        int tryCnt = 5;
+        int tryCnt = 10;
         String words = "1000金币悬赏任务";
         LogUtils.d(TAG, "inTaskListView - retry cnt:" + tryCnt + ", find words:" + words);
         String text = mScreenManager.getWholeTextByStartString(mAppTitle, words);
@@ -471,6 +523,24 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             nodeInfos = mScreenManager.findNodesByTextContains(mAppTitle, text);
         }
         return nodeInfos;
+    }
+
+    /**
+     * try tap view
+     */
+
+    public boolean tryTapParentThatContains(String text, int tryCnt) throws InterruptedException {
+        LogUtils.d(TAG, "tryTapParentThatContains - text:" + text + ", retry cnt:" + tryCnt);
+        if (checkStop()) return false;
+
+        AccessibilityNodeInfo nodeInfo = tryFindViewByTextContains(text, tryCnt);
+        if (nodeInfo != null) {
+//            LogUtils.d(TAG, "tryTapParentThatContains - nodeInfo:" + nodeInfo.toString());
+//            LogUtils.d(TAG, "tryTapParentThatContains - getParent:" + nodeInfo.getParent().toString());
+            return mScreenManager.tap(nodeInfo.getParent());
+        } else {
+            return false;
+        }
     }
 
     public boolean tryTapViewByFuzzySearch(String clazz, String searchWords, int tryCnt) throws InterruptedException {
