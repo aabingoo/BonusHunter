@@ -101,6 +101,12 @@ public class FloatWindow implements View.OnTouchListener {
 //                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
 //                mScreenManager.findViewBySIFT(xigua_fudai);
                 mScreenManager.loopAllViews();
+                AccessibilityNodeInfo nodeInfo = mScreenManager.getNodeById("快手极速版", "com.kuaishou.nebula:id/exit_btn");
+                if (nodeInfo != null) {
+                    mScreenManager.tap(nodeInfo);
+                }
+                mScreenManager.getNodesByFuzzySearch("快手极速版", "看精彩视频赚更多");
+                mScreenManager.getNodesByFuzzySearch("快手极速版", "开宝箱得金币");
             }
         });
 
