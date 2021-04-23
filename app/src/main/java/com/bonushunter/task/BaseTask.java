@@ -106,7 +106,7 @@ public abstract class BaseTask implements ITask {
 
     @Override
     public void updateRemainSeconds(int remainSeconds) {
-        FloatWindow.getInstance(mContext).setRemianTime(remainSeconds);
+//        FloatWindow.getInstance(mContext).setRemianTime(remainSeconds);
     }
 
     @Override

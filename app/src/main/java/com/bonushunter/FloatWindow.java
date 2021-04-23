@@ -16,6 +16,7 @@ import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,10 +41,8 @@ public class FloatWindow implements View.OnTouchListener {
     private ImageView mExpend;
     private TextView mStartBtn;
     private TextView mTaskDesc;
-    private TextView mRemainTime;
-    private LinearLayout mContent2;
-    private TextView mTaskDesc2;
-    private TextView mRemainTime2;
+    private TextView mLog;
+    private ScrollView mLogContain;
 
     private static FloatWindow singleton;
 
@@ -52,6 +51,8 @@ public class FloatWindow implements View.OnTouchListener {
     private CountDownLatch mStopLatch;
 
     private boolean mShown = false;
+
+    int test = 0;
 
     private FloatWindow(Context context) {
         mContext = context;
@@ -82,39 +83,28 @@ public class FloatWindow implements View.OnTouchListener {
         mExpend = mFloatView.findViewById(R.id.expend_btn);
         mStartBtn = mFloatView.findViewById(R.id.start_btn);
         mTaskDesc = mFloatView.findViewById(R.id.task_desc);
-        mRemainTime = mFloatView.findViewById(R.id.remain_time);
-        mContent2 = mFloatView.findViewById(R.id.content2);
-        mContent2.setVisibility(View.GONE);
-        mTaskDesc2 = mFloatView.findViewById(R.id.task_desc2);
-        mRemainTime2 = mFloatView.findViewById(R.id.remain_time2);
+        mLog = mFloatView.findViewById(R.id.log);
+        mLogContain = mFloatView.findViewById(R.id.log_content);
 
         mExpend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int visibility = mStartBtn.getVisibility();
+                int visibility = mLogContain.getVisibility();
                 if (visibility == View.GONE) {
-                    mStartBtn.setVisibility(View.VISIBLE);
+                    mLogContain.setVisibility(View.VISIBLE);
                 } else {
-                    mStartBtn.setVisibility(View.GONE);
+                    mLogContain.setVisibility(View.GONE);
                 }
 
 //                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
 //                mScreenManager.findViewBySIFT(xigua_fudai);
                 mScreenManager.loopAllViews();
-                AccessibilityNodeInfo nodeInfo = mScreenManager.getNodeById("快手极速版", "com.kuaishou.nebula:id/exit_btn");
-                if (nodeInfo != null) {
-                    mScreenManager.tap(nodeInfo);
-                }
-                mScreenManager.getNodesByFuzzySearch("快手极速版", "看精彩视频赚更多");
-                mScreenManager.getNodesByFuzzySearch("快手极速版", "开宝箱得金币");
-            }
-        });
-
-        mRemainTime.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Bitmap xigua_fudai = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.xigua_fudai);
-                mScreenManager.findViewBySURF(xigua_fudai);
+//                AccessibilityNodeInfo nodeInfo = mScreenManager.getNodeById("快手极速版", "com.kuaishou.nebula:id/exit_btn");
+//                if (nodeInfo != null) {
+//                    mScreenManager.tap(nodeInfo);
+//                }
+//                mScreenManager.getNodesByFuzzySearch("快手极速版", "看精彩视频赚更多");
+//                mScreenManager.getNodesByFuzzySearch("快手极速版", "开宝箱得金币");
             }
         });
 
@@ -198,27 +188,26 @@ public class FloatWindow implements View.OnTouchListener {
         show();
 
         if (mRunningApps.size() == 0) {
-            mContent2.setVisibility(View.GONE);
             // start task
             IAppRobot appRobot = AppRobotFactory.getAppRobot(mContext, packageName);
-            appRobot.setDescAndRemainView(mTaskDesc, mRemainTime);
+            appRobot.setDescAndRemainView(mTaskDesc, mLog);
             appRobot.start();
             mRunningApps.add(appRobot);
             Toast.makeText(mContext, "脚本启动成功", Toast.LENGTH_SHORT).show();
-        } else if (mRunningApps.size() == 1) {
-            if (mScreenManager.splitWindowEnabled()) {
-                mContent2.setVisibility(View.VISIBLE);
-                IAppRobot appRobot = AppRobotFactory.getAppRobot(mContext, packageName);
-                appRobot.setDescAndRemainView(mTaskDesc2, mRemainTime2);
-                appRobot.start();
-                mRunningApps.add(appRobot);
-                Toast.makeText(mContext, "脚本启动成功", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(mContext, "请先关闭正在运行的脚本再启动新的脚本", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(mContext, "请先关闭正在运行的脚本再启动新的脚本", Toast.LENGTH_SHORT).show();
         }
+//        else if (mRunningApps.size() == 1) {
+//            if (mScreenManager.splitWindowEnabled()) {
+//                IAppRobot appRobot = AppRobotFactory.getAppRobot(mContext, packageName);
+//                appRobot.setDescAndRemainView(mTaskDesc2, mRemainTime2);
+//                appRobot.start();
+//                mRunningApps.add(appRobot);
+//                Toast.makeText(mContext, "脚本启动成功", Toast.LENGTH_SHORT).show();
+//            } else {
+//                Toast.makeText(mContext, "请先关闭正在运行的脚本再启动新的脚本", Toast.LENGTH_SHORT).show();
+//            }
+//        } else {
+//            Toast.makeText(mContext, "请先关闭正在运行的脚本再启动新的脚本", Toast.LENGTH_SHORT).show();
+//        }
     }
 
     private int mPressX;
@@ -255,7 +244,7 @@ public class FloatWindow implements View.OnTouchListener {
     }
 
     public void setRemianTime (int seconds) {
-        mRemainTime.setText(String.valueOf(seconds));
+//        mRemainTime.setText(String.valueOf(seconds));
     }
 
     public void setTaskDesc(String desc) {
@@ -265,5 +254,51 @@ public class FloatWindow implements View.OnTouchListener {
     private IAppRobot mAppRobot;
     public void setAppRobot(IAppRobot appRobot) {
         mAppRobot = appRobot;
+    }
+
+
+
+    private final int MAX_LINES = 30;
+    private List<String> mLogList = new ArrayList<>();
+    private int mStartIndex = 0;
+    private int mEndIndex = 0;
+
+    public void appendLog(final String log) {
+//        mUiHandler.post(new Runnable() {
+//            @Override
+//            public void run() {
+                if (mLogList.size() < MAX_LINES) {
+                    mStartIndex = 0;
+                    mLogList.add(log);
+                    mEndIndex = mLogList.size() - 1;
+                } else {
+                    mEndIndex += 1;
+                    if (mEndIndex >= MAX_LINES) {
+                        mEndIndex = 0;
+                    }
+                    mLogList.set(mEndIndex, log);
+                    mStartIndex = mEndIndex + 1;
+                    if (mStartIndex >= MAX_LINES) {
+                        mStartIndex = 0;
+                    }
+                }
+
+                int firstIndex = mStartIndex;
+                int lastIndex = mEndIndex;
+                if (mStartIndex > mEndIndex) {
+                    lastIndex = mEndIndex + MAX_LINES;
+                }
+                StringBuilder stringBuilder = new StringBuilder();
+                while (firstIndex <= lastIndex) {
+                    int realIndex = firstIndex++;
+                    if (realIndex >= MAX_LINES) {
+                        realIndex -= MAX_LINES;
+                    }
+                    stringBuilder.append(mLogList.get(realIndex)).append("\n");
+                }
+
+                mLog.setText(stringBuilder);
+//            }
+//        });
     }
 }

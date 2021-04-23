@@ -7,13 +7,10 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.TextView;
 
-import androidx.test.internal.util.LogUtil;
-
-import com.bonushunter.FloatWindow;
-
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.logging.LogRecord;
 
 public abstract class BaseAppRobot implements IAppRobot {
 
@@ -91,13 +88,48 @@ public abstract class BaseAppRobot implements IAppRobot {
 
     private volatile int mWaitSeconds;
 
-    private void updateRemainSeconds() {
-//        mUiHandler.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                mRemainView.setText(String.valueOf(mWaitSeconds));
-//            }
-//        });
+    private final int MAX_LINES = 30;
+    private List<String> mLogList = new ArrayList<>();
+    private int mStartIndex = 0;
+    private int mEndIndex = 0;
+
+    public void appendLog(final String log) {
+        mUiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mLogList.size() < MAX_LINES) {
+                    mStartIndex = 0;
+                    mLogList.add(log);
+                    mEndIndex = mLogList.size() - 1;
+                } else {
+                    mEndIndex += 1;
+                    if (mEndIndex >= MAX_LINES) {
+                        mEndIndex = 0;
+                    }
+                    mLogList.set(mEndIndex, log);
+                    mStartIndex = mEndIndex + 1;
+                    if (mStartIndex >= MAX_LINES) {
+                        mStartIndex = 0;
+                    }
+                }
+
+                int firstIndex = mStartIndex;
+                int lastIndex = mEndIndex;
+                if (mStartIndex > mEndIndex) {
+                    lastIndex = mEndIndex + MAX_LINES;
+                }
+                StringBuilder stringBuilder = new StringBuilder();
+                while (firstIndex <= lastIndex) {
+                    int realIndex = firstIndex++;
+                    if (realIndex >= MAX_LINES) {
+                        realIndex -= MAX_LINES;
+                    }
+                    stringBuilder.append(mLogList.get(realIndex)).append("\n");
+                }
+
+                mLog.setText(stringBuilder);
+            }
+        });
     }
 
     protected void wait(int seconds) {
@@ -124,10 +156,10 @@ public abstract class BaseAppRobot implements IAppRobot {
     };
 
     private TextView mDescView;
-    private TextView mRemainView;
+    private TextView mLog;
     @Override
-    public void setDescAndRemainView(TextView desc, TextView remain) {
+    public void setDescAndRemainView(TextView desc, TextView log) {
         mDescView = desc;
-        mRemainView = remain;
+        mLog = log;
     }
 }
