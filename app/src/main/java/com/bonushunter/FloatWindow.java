@@ -85,6 +85,7 @@ public class FloatWindow implements View.OnTouchListener {
         mTaskDesc = mFloatView.findViewById(R.id.task_desc);
         mLog = mFloatView.findViewById(R.id.log);
         mLogContain = mFloatView.findViewById(R.id.log_content);
+        mLogContain.setVisibility(View.GONE);
 
         mExpend.setOnClickListener(new View.OnClickListener() {
             @Override

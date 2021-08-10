@@ -3,6 +3,7 @@ package com.bonushunter.apps;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bonushunter.manager.ScreenManager;
@@ -45,28 +46,28 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             // check in
             if (!completeCheckIn) {
                 completeCheckIn = checkIn();
-                LogUtils.d(TAG, "completeCheckIn:" + completeCheckIn);
+                appendLog("completeCheckIn:" + completeCheckIn);
             }
 
             if (!completeOpenBox) {
                 completeOpenBox = openBox();
-                LogUtils.d(TAG, "completeOpenBox:" + completeOpenBox);
+                appendLog("completeOpenBox:" + completeOpenBox);
             }
 
             // start see AD task
             if (!completeSeeAD) {
                 completeSeeAD = seeAd();
-                LogUtils.d(TAG, "completeSeeAD:" + completeSeeAD);
+                appendLog("completeSeeAD:" + completeSeeAD);
             }
 
             if (!completeSeeLive) {
                 completeSeeLive = seeLive();
-                LogUtils.d(TAG, "completeSeeLive:" + completeSeeLive);
+                appendLog("completeSeeLive:" + completeSeeLive);
             }
 
             if (!completeSeeVideo) {
                 completeSeeVideo = seeVideo();
-                LogUtils.d(TAG, "completeSeeVideo:" + completeSeeVideo);
+                appendLog("completeSeeVideo:" + completeSeeVideo);
             }
         }
     }
@@ -179,25 +180,31 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
         updateFloatPrompt("打开宝箱中");
         List<AccessibilityNodeInfo> openBoxNodes =
-                mScreenManager.getNodesByFuzzySearch(mAppTitle, "开宝箱得金币", 10);
+                mScreenManager.getNodesByFuzzySearch(mAppTitle, "treasurebox", 10);
         if (openBoxNodes != null && openBoxNodes.size() > 0) {
             appendLog("找到宝箱");
-            if (mScreenManager.tap(openBoxNodes.get(0).getParent())){
-                appendLog("已打开宝箱，寻找看精彩视频赚更多");
-                LogUtils.d(TAG, "openBox - try to see ad for more");
-                List<AccessibilityNodeInfo> earnMoreNodes =
-                        mScreenManager.getNodesByFuzzySearch(mAppTitle, "看精彩视频赚更多", 10);
-                if (earnMoreNodes != null && earnMoreNodes.size() > 0) {
-                    appendLog("找到看精彩视频赚更多");
-                    if (mScreenManager.tap(earnMoreNodes.get(0).getParent())){
-                        LogUtils.d(TAG, "openBox - try to close see ad");
-                        appendLog("点击看精彩视频赚更多");
-                        handleSeeAd();
+            AccessibilityNodeInfo treasureBoxNode = openBoxNodes.get(0).getParent();
+            String boxStatus = treasureBoxNode.getChild(1).getText().toString();
+            appendLog("宝箱状态：" + boxStatus);
+            if (!"明日再来".equals(boxStatus)) {
+                if (mScreenManager.tap(treasureBoxNode)) {
+                    appendLog("已打开宝箱，寻找看精彩视频赚更多");
+                    LogUtils.d(TAG, "openBox - try to see ad for more");
+                    List<AccessibilityNodeInfo> earnMoreNodes =
+                            mScreenManager.getNodesByFuzzySearch(mAppTitle, "看精彩视频赚更多", 10);
+                    if (earnMoreNodes != null && earnMoreNodes.size() > 0) {
+                        appendLog("找到看精彩视频赚更多");
+                        if (mScreenManager.tap(earnMoreNodes.get(0).getParent())){
+                            LogUtils.d(TAG, "openBox - try to close see ad");
+                            appendLog("点击看精彩视频赚更多");
+                            handleSeeAd();
+                        }
                     }
                 }
+            } else {
+                return true;
             }
         }
-
         return false;
     }
 
@@ -242,10 +249,21 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             return false;
         } else if (remainNum < 10) {
             // see live
-            appendLog("寻找看直播:" + remainNum);
-            List<AccessibilityNodeInfo> seeLiveNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "看直播", 10);// tryFindViewsByTextContains("看直播", 5);
-            if (seeLiveNodes != null && seeLiveNodes.size() > 0) {
-                if (mScreenManager.tap(seeLiveNodes.get(seeLiveNodes.size() - 1))) {
+            appendLog("看直播次数:" + remainNum);
+            List<AccessibilityNodeInfo> seeLiveNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "观看精彩直播得", 10);
+            if (seeLiveNodes != null && seeLiveNodes.size() == 1) {
+                AccessibilityNodeInfo liveContainerNode = seeLiveNodes.get(0).getParent();
+                appendLog("准备看直播:" + liveContainerNode.getChildCount());
+                AccessibilityNodeInfo liveParentNode = null;
+                for (int i = 0; 0 < liveContainerNode.getChildCount(); i++) {
+                    CharSequence content = liveContainerNode.getChild(i).getText();
+                    if (!TextUtils.isEmpty(content) && content.toString().contains("看直播")) {
+                        appendLog("找到看直播");
+                        liveParentNode = liveContainerNode.getChild(i);
+                        break;
+                    }
+                }
+                if (liveParentNode != null && mScreenManager.tap(liveParentNode)) {
                     appendLog("开始看直播:" + remainNum);
                     int cnt = remainNum;
                     while (cnt++ < 10) {
@@ -297,11 +315,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
                         ScreenManager.getInstance(getContext()).swipeUp(mAppTitle);
                     }
                     appendLog("退出看直播中");
-                    mScreenManager.back();
-                    AccessibilityNodeInfo exitLiveNode = mScreenManager.getNodeById(mAppTitle, "com.kuaishou.nebula:id/exit_btn", 10);
-                    if (exitLiveNode != null) {
-                        mScreenManager.tap(exitLiveNode);
-                    }
+                    backToTaskView();
                     return seeLive();
                 }
             }
@@ -309,6 +323,22 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         } else {
             // complete ad
             return true;
+        }
+    }
+
+    private void backToTaskView() throws InterruptedException {
+        int tryNum = 30;
+        while (!inTaskListView() && tryNum-- > 0) {
+            mScreenManager.back();
+            AccessibilityNodeInfo exitLiveNode = mScreenManager.getNodeById(mAppTitle, "com.kuaishou.nebula:id/exit_btn");
+            if (exitLiveNode != null) {
+                mScreenManager.tap(exitLiveNode);
+            }
+            exitLiveNode = mScreenManager.getNodeById(mAppTitle, "com.kuaishou.nebula:id/live_exit_button");
+            if (exitLiveNode != null) {
+                mScreenManager.tap(exitLiveNode);
+            }
+            Thread.sleep(1000);
         }
     }
 
@@ -326,6 +356,10 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
         if (inTaskListView()) {
             mScreenManager.back();
+        }
+
+        if (inTaskListView()) {
+            backToSeeVideo();
         }
 
         updateFloatPrompt("看视频中");
@@ -358,6 +392,22 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         }
     }
 
+    public void backToSeeVideo() {
+        List<AccessibilityNodeInfo> seeVideoNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "看视频赚金币", 5);
+        if (seeVideoNodes != null && seeVideoNodes.size() > 0) {
+            appendLog("found see video task node:" + seeVideoNodes.size());
+            for (AccessibilityNodeInfo nodeInfo: seeVideoNodes) {
+                AccessibilityNodeInfo adTaskNode = nodeInfo.getParent();
+                int childCnt = adTaskNode.getChildCount();
+                AccessibilityNodeInfo seeVideoNode = adTaskNode.getChild(childCnt - 1).getChild(0);
+                if (seeVideoNode.getText().toString().equals("去赚钱")) {
+                    appendLog("tap see video node");
+                    mScreenManager.tap(seeVideoNode);
+                }
+            }
+        }
+    }
+
     public boolean startSeeAd(int maxEmptyNum) throws InterruptedException {
         LogUtils.d(TAG, "startSeeAd - maxEmptyNum:" + maxEmptyNum);
 
@@ -367,10 +417,10 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
         // check if already complete ad task
         int adRemainNum = getAdRemainNum(15);
-        LogUtils.d(TAG, "startSeeAd - adRemainNum:" + adRemainNum);
+        appendLog("startSeeAd - remain num:" + adRemainNum);
         if (adRemainNum < 0) {
             return false;
-        } else if (adRemainNum < 10) {
+        } else if (adRemainNum > 0) {
             // see Ad
             if (tryTapViewByFuzzySearch("android.widget.Button", "福利", 5)) {
                 if (handleSeeAd()) {
@@ -480,7 +530,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
     private boolean inTaskListView() throws InterruptedException {
         int tryCnt = 10;
-        String words = "金币悬赏任务";
+        String words = "日常任务";
         LogUtils.d(TAG, "inTaskListView - retry cnt:" + tryCnt + ", find words:" + words);
         return mScreenManager.getNodesByFuzzySearch(mAppTitle, words, tryCnt).size() > 0;
     }
@@ -512,58 +562,55 @@ public class KuaiShouAppRobot extends BaseAppRobot {
     }
 
     private int getAdRemainNum(int tryCnt) throws InterruptedException {
-        LogUtils.d(TAG, "getAdRemainNum - retry cnt:" + tryCnt);
-        String completeText = mScreenManager.getWholeTextByStartString(mAppTitle, "明天看视频继续领取");
-        String remainText = mScreenManager.getWholeTextByStartString(mAppTitle, "每次");
-        while (TextUtils.isEmpty(completeText) && TextUtils.isEmpty(remainText) && tryCnt-- > 0) {
-            LogUtils.d(TAG, "getAdRemainNum - Not found, sleep 1s, remain retry cnt:" + tryCnt);
-            if (checkStop()) return -1;
-            Thread.sleep(1000);
-            remainText = mScreenManager.getWholeTextByStartString(mAppTitle, "每次");
-            completeText = mScreenManager.getWholeTextByStartString(mAppTitle, "明天看视频继续领取");
-        }
-        if (!TextUtils.isEmpty(completeText)) {
-            return 10;
-        }
-        if (!TextUtils.isEmpty(remainText)) {
-            int remainNumIndex = remainText.indexOf('/') - 1;
-            if (remainNumIndex > 0) {
-                int r = remainText.charAt(remainNumIndex) - '0';
-                LogUtils.d(TAG, "getAdRemainNum:" + remainText + ", char:" + remainText.charAt(remainNumIndex) + ", r:" + r);
-                return r;
+        List<AccessibilityNodeInfo> moneyWantNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "金币悬赏", tryCnt);
+        if (moneyWantNodes != null && moneyWantNodes.size() > 0) {
+            appendLog("found ad task node:" + moneyWantNodes.size());
+            for (AccessibilityNodeInfo nodeInfo: moneyWantNodes) {
+                AccessibilityNodeInfo adTaskNode = nodeInfo.getParent();
+                int childCnt = adTaskNode.getChildCount();
+                for (int i = 0; i < childCnt; i++) {
+                    if (adTaskNode.getChild(i).getText() != null) {
+                        String text = adTaskNode.getChild(i).getText().toString();
+                        // already complete ad task
+                        if (text.contains("明天") || text.contains("明日")) {
+                            appendLog("already complete ad task");
+                            return 0;
+                        }
+                        // incomplete
+                        if (text.contains("/")) {
+                            appendLog("find remain text:" + text);
+                            int separation = text.indexOf('/');
+                            int totalNum = 0;
+                            for (int t = separation + 1; t < text.length(); t++) {
+                                int num = text.charAt(t) - '0';
+                                appendLog("find total:" + totalNum + ", num:" + num);
+                                if (0 <= num && num <= 9) {
+                                    totalNum = totalNum * 10 + num;
+                                } else {
+                                    break;
+                                }
+                            }
+                            int doneNum = text.charAt(separation - 1) - '0';
+                            for (int n = separation - 2; n > 0; n--) {
+                                int num = text.charAt(n) - '0';
+                                appendLog("find doneNum:" + doneNum + ", num:" + num);
+                                if (0 <= num && num <= 9) {
+                                    doneNum = num * (10 * separation - 1 - n) + doneNum;
+                                } else {
+                                    break;
+                                }
+                            }
+                            appendLog("ad task t:" + totalNum + ", d:" + doneNum);
+                            return totalNum - doneNum;
+                        }
+                    }
+                }
             }
         }
-        LogUtils.d(TAG, "getAdRemainNum - not found");
+        appendLog("getAdRemainNum - not found");
         return -1;
     }
 
-    public AccessibilityNodeInfo tryFindViewById(String id, int tryCnt) throws InterruptedException {
-        LogUtils.d(TAG, "tryFindViewById - id:" + id + ", retry cnt:" + tryCnt);
-        if (checkStop()) return null;
-
-        AccessibilityNodeInfo nodeInfo = mScreenManager.findNodeById(mAppTitle, id);
-        while (nodeInfo == null && tryCnt-- > 0) {
-            LogUtils.d(TAG, "tryFindViewById - Not found, sleep 1s, remain retry cnt:" + tryCnt);
-            if (checkStop()) return null;
-            Thread.sleep(1000);
-            nodeInfo = mScreenManager.findNodeById(mAppTitle, id);
-        }
-        return nodeInfo;
-    }
-
-    public AccessibilityNodeInfo tryFindViewByText(String text, int tryCnt) throws InterruptedException {
-        LogUtils.d(TAG, "tryFindViewByText - text" + text + ", retry cnt:" + tryCnt);
-        if (checkStop()) return null;
-
-        AccessibilityNodeInfo nodeInfo = mScreenManager.findNodeByText(mAppTitle, text);
-        while (nodeInfo == null && tryCnt-- > 0) {
-            LogUtils.d(TAG, "tryFindViewByText - Not found, sleep 1s, remain retry cnt:" + tryCnt);
-            if (checkStop()) return null;
-            Thread.sleep(1000);
-            nodeInfo = mScreenManager.findNodeByText(mAppTitle, text);
-        }
-        return nodeInfo;
-    }
 
     public AccessibilityNodeInfo tryFindViewByTextContains(String text, int tryCnt) throws InterruptedException {
         LogUtils.d(TAG, "tryFindViewByTextContains - text" + text + ", retry cnt:" + tryCnt);
@@ -579,37 +626,9 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         return nodeInfo;
     }
 
-    public List<AccessibilityNodeInfo> tryFindViewsByTextContains(String text, int tryCnt) throws InterruptedException {
-        LogUtils.d(TAG, "tryFindViewsByTextContains - text:" + text + ", retry cnt:" + tryCnt);
-        if (checkStop()) return null;
-
-        List<AccessibilityNodeInfo> nodeInfos = mScreenManager.findNodesByTextContains(mAppTitle, text);
-        while (nodeInfos == null && tryCnt-- > 0) {
-            LogUtils.d(TAG, "tryFindViewsByTextContains - Not found, sleep 1s, remain retry cnt:" + tryCnt);
-            if (checkStop()) return null;
-            Thread.sleep(1000);
-            nodeInfos = mScreenManager.findNodesByTextContains(mAppTitle, text);
-        }
-        return nodeInfos;
-    }
-
     /**
      * try tap view
      */
-
-    public boolean tryTapParentThatContains(String text, int tryCnt) throws InterruptedException {
-        LogUtils.d(TAG, "tryTapParentThatContains - text:" + text + ", retry cnt:" + tryCnt);
-        if (checkStop()) return false;
-
-        AccessibilityNodeInfo nodeInfo = tryFindViewByTextContains(text, tryCnt);
-        if (nodeInfo != null) {
-//            LogUtils.d(TAG, "tryTapParentThatContains - nodeInfo:" + nodeInfo.toString());
-//            LogUtils.d(TAG, "tryTapParentThatContains - getParent:" + nodeInfo.getParent().toString());
-            return mScreenManager.tap(nodeInfo.getParent());
-        } else {
-            return false;
-        }
-    }
 
     public boolean tryTapViewByFuzzySearch(String clazz, String searchWords, int tryCnt) throws InterruptedException {
         LogUtils.d(TAG, "tryTapViewByFuzzySearch - clazz:" + clazz
@@ -625,42 +644,4 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         return tryCnt > 0;
     }
 
-    public boolean tryTapViewByTextContains(String text, int tryCnt) throws InterruptedException {
-        LogUtils.d(TAG, "tryTapViewByTextContains - text" + text + ", retry cnt:" + tryCnt);
-        if (checkStop()) return false;
-
-        while (!mScreenManager.tapViewByTextContains(mAppTitle, text)
-                && tryCnt-- > 0) {
-            LogUtils.d(TAG, "tryTapViewByTextContains - Not found, sleep 1s, remain retry cnt:" + tryCnt);
-            if (checkStop()) return false;
-            Thread.sleep(1000);
-        }
-        return tryCnt > 0;
-    }
-
-    public boolean tryTapViewByText(String text, int tryCnt) throws InterruptedException {
-        LogUtils.d(TAG, "tryTapViewByText - text" + text + ", retry cnt:" + tryCnt);
-        if (checkStop()) return false;
-
-        while (!mScreenManager.tapViewByText(mAppTitle, text)
-                && tryCnt-- > 0) {
-            LogUtils.d(TAG, "tryTapViewByText - Not found, sleep 1s, remain retry cnt:" + tryCnt);
-            if (checkStop()) return false;
-            Thread.sleep(1000);
-        }
-        return tryCnt > 0;
-    }
-
-    public boolean tryTapViewById(String id, int tryCnt) throws InterruptedException {
-        LogUtils.d(TAG, "tryTapViewById - id" + id + ", retry cnt:" + tryCnt);
-        if (checkStop()) return false;
-
-        while (!mScreenManager.tapViewById(mAppTitle, id)
-                && tryCnt-- > 0) {
-            LogUtils.d(TAG, "tryTapViewById - Not found, sleep 1s, remain retry cnt:" + tryCnt);
-            if (checkStop()) return false;
-            Thread.sleep(1000);
-        }
-        return tryCnt > 0;
-    }
 }

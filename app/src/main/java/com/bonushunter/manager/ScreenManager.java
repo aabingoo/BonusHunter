@@ -730,6 +730,7 @@ public class ScreenManager {
 
 //            org.opencv.android.Utils.matToBitmap(finViewBySurf(null, template), templateBm);
             List<Point> matchPoints = finViewBySurf(source, template);
+
             for (Point p: matchPoints) {
                 Imgproc.drawMarker(source, p, new Scalar(0, 255, 0, 255));
             }
