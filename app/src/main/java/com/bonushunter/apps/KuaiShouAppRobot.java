@@ -253,12 +253,13 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             List<AccessibilityNodeInfo> seeLiveNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "观看精彩直播得", 10);
             if (seeLiveNodes != null && seeLiveNodes.size() == 1) {
                 AccessibilityNodeInfo liveContainerNode = seeLiveNodes.get(0).getParent();
-                appendLog("准备看直播:" + liveContainerNode.getChildCount());
+                appendLog("直播子节点数:" + liveContainerNode.getChildCount());
                 AccessibilityNodeInfo liveParentNode = null;
                 for (int i = 0; 0 < liveContainerNode.getChildCount(); i++) {
                     CharSequence content = liveContainerNode.getChild(i).getText();
-                    if (!TextUtils.isEmpty(content) && content.toString().contains("看直播")) {
-                        appendLog("找到看直播");
+                    if (!TextUtils.isEmpty(content) &&
+                            (content.toString().contains("看直播") || content.toString().contains("领福利"))) {
+                        appendLog("找到看直播, i:" + i);
                         liveParentNode = liveContainerNode.getChild(i);
                         break;
                     }
@@ -397,13 +398,16 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         if (seeVideoNodes != null && seeVideoNodes.size() > 0) {
             appendLog("found see video task node:" + seeVideoNodes.size());
             for (AccessibilityNodeInfo nodeInfo: seeVideoNodes) {
-                AccessibilityNodeInfo adTaskNode = nodeInfo.getParent();
-                int childCnt = adTaskNode.getChildCount();
-                AccessibilityNodeInfo seeVideoNode = adTaskNode.getChild(childCnt - 1).getChild(0);
-                if (seeVideoNode.getText().toString().equals("去赚钱")) {
-                    appendLog("tap see video node");
-                    mScreenManager.tap(seeVideoNode);
-                }
+                appendLog("2222");
+//                AccessibilityNodeInfo adTaskNode = nodeInfo.getParent();
+//                int childCnt = adTaskNode.getChildCount();
+//                appendLog("see video child cnt:" + childCnt);
+//                AccessibilityNodeInfo seeVideoNode = adTaskNode.getChild(childCnt - 1).getChild(0);
+//                appendLog("see video child:" + seeVideoNode.getText());
+//                if (seeVideoNode.getText().toString().equals("去赚钱")) {
+//                    appendLog("tap see video node");
+//                    mScreenManager.tap(seeVideoNode);
+//                }
             }
         }
     }
@@ -532,7 +536,9 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         int tryCnt = 10;
         String words = "日常任务";
         LogUtils.d(TAG, "inTaskListView - retry cnt:" + tryCnt + ", find words:" + words);
-        return mScreenManager.getNodesByFuzzySearch(mAppTitle, words, tryCnt).size() > 0;
+        int taskSize = mScreenManager.getNodesByFuzzySearch(mAppTitle, words, tryCnt).size();
+        appendLog("日常任务:" + taskSize);
+        return taskSize > 0;
     }
 
     private int getLiveRemainNum(int tryCnt) throws InterruptedException {
