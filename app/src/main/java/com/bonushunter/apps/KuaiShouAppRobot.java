@@ -13,6 +13,8 @@ import com.bonushunter.utils.AppRobotUtils;
 import com.bonushunter.utils.LogUtils;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class KuaiShouAppRobot extends BaseAppRobot {
 
@@ -243,88 +245,105 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
         updateFloatPrompt("看直播中");
 
-        int remainNum = getLiveRemainNum(15);
-        LogUtils.d(TAG, "seeLive - remainNum:" + remainNum);
-        if (remainNum < 0) {
+        AccessibilityNodeInfo liveLayoutNode = getLiveLayoutNode();
+        if (liveLayoutNode == null) {
+            appendLog("liveLayoutNode not found");
             return false;
-        } else if (remainNum < 10) {
+        }
+
+        int remainNum = getLiveRemainNum(liveLayoutNode);
+        if (remainNum > 0) {
             // see live
-            appendLog("看直播次数:" + remainNum);
-            List<AccessibilityNodeInfo> seeLiveNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "观看精彩直播得", 10);
-            if (seeLiveNodes != null && seeLiveNodes.size() == 1) {
-                AccessibilityNodeInfo liveContainerNode = seeLiveNodes.get(0).getParent();
-                appendLog("直播子节点数:" + liveContainerNode.getChildCount());
-                AccessibilityNodeInfo liveParentNode = null;
-                for (int i = 0; 0 < liveContainerNode.getChildCount(); i++) {
-                    CharSequence content = liveContainerNode.getChild(i).getText();
-                    if (!TextUtils.isEmpty(content) &&
-                            (content.toString().contains("看直播") || content.toString().contains("领福利"))) {
-                        appendLog("找到看直播, i:" + i);
-                        liveParentNode = liveContainerNode.getChild(i);
-                        break;
-                    }
-                }
-                if (liveParentNode != null && mScreenManager.tap(liveParentNode)) {
-                    appendLog("开始看直播:" + remainNum);
-                    int cnt = remainNum;
-                    while (cnt++ < 10) {
-                        AccessibilityNodeInfo awardCountDownNode =
-                                mScreenManager.getNodeById(mAppTitle, "com.kuaishou.nebula:id/award_count_down_text", 15);
-                                //tryFindViewById("com.kuaishou.nebula:id/award_count_down_text", 15);
-                        appendLog("cdn null:" + (awardCountDownNode != null));
-                        appendLog("cdn and text null:" + (awardCountDownNode != null && awardCountDownNode.getText() != null));
-                        if (awardCountDownNode != null && awardCountDownNode.getText() != null) {
-                            // get time
-                            String countDownText = awardCountDownNode.getText().toString();
-                            appendLog("countDownText:" + countDownText);
-                            int minutes = Integer.valueOf(countDownText.split(":")[0]);
-                            int seconds = Integer.valueOf(countDownText.split(":")[1]);
-                            updateFloatPrompt("minutes:" + minutes + ", seconds:" + seconds);
-                            int countDown = minutes * 60 + seconds + 1;
-                            LogUtils.d(TAG, "minutes:" + minutes + ", seconds:" + seconds + ", countDown:" + countDown);
-                            if (countDown <= 0) {
-                                countDown = 92;
-                            }
-                            appendLog("看:" + cnt + ",需:" + countDown);
-
-                            AccessibilityNodeInfo earnedNode = mScreenManager
-                                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/earn_fans_top_coin_count_group");
-                            while (earnedNode == null && countDown-- >= 0) {
-                                long start = System.currentTimeMillis();
-                                AccessibilityNodeInfo closeNode = mScreenManager
-                                        .getNodeById(mAppTitle, "com.kuaishou.nebula:id/live_red_packet_container_close_view");
-                                if (closeNode != null) {
-                                    mScreenManager.tap(closeNode);
-                                }
-                                closeNode = mScreenManager
-                                        .getNodeById(mAppTitle, "com.kuaishou.nebula:id/close");
-                                if (closeNode != null) {
-                                    mScreenManager.tap(closeNode);
-                                }
-                                long dif = System.currentTimeMillis() - start;
-                                if (dif < 1000) {
-                                    Thread.sleep(1000 - dif);
-                                }
-
-                                appendLog("看:" + cnt + ",需:" + countDown);
-                                earnedNode = mScreenManager
-                                        .findNodeById(mAppTitle, "com.kuaishou.nebula:id/earn_fans_top_coin_count_group");
-                            }
-                        } else {
-                            appendLog("没找到倒计时");
+            appendLog("看直播剩余次数:" + remainNum);
+            AccessibilityNodeInfo liveTaskNode = getLiveTaskNode(liveLayoutNode.getParent());
+            if (liveTaskNode != null && mScreenManager.tap(liveTaskNode)) {
+                appendLog("开始看直播，剩余:" + remainNum);
+                int cnt = remainNum;
+                while (cnt-- > 0) {
+                    AccessibilityNodeInfo awardCountDownNode =
+                            mScreenManager.getNodeById(mAppTitle, "com.kuaishou.nebula:id/award_count_down_text", 15);
+                    //tryFindViewById("com.kuaishou.nebula:id/award_count_down_text", 15);
+                    appendLog("cdn null:" + (awardCountDownNode != null));
+                    appendLog("cdn and text null:" + (awardCountDownNode != null && awardCountDownNode.getText() != null));
+                    if (awardCountDownNode != null && awardCountDownNode.getText() != null) {
+                        // get time
+                        String countDownText = awardCountDownNode.getText().toString();
+                        appendLog("countDownText:" + countDownText);
+                        int minutes = Integer.valueOf(countDownText.split(":")[0]);
+                        int seconds = Integer.valueOf(countDownText.split(":")[1]);
+                        updateFloatPrompt("minutes:" + minutes + ", seconds:" + seconds);
+                        int countDown = minutes * 60 + seconds + 1;
+                        LogUtils.d(TAG, "minutes:" + minutes + ", seconds:" + seconds + ", countDown:" + countDown);
+                        if (countDown <= 0) {
+                            countDown = 92;
                         }
-                        ScreenManager.getInstance(getContext()).swipeUp(mAppTitle);
+                        appendLog("看:" + cnt + ",需:" + countDown);
+
+                        AccessibilityNodeInfo earnedNode = mScreenManager
+                                .findNodeById(mAppTitle, "com.kuaishou.nebula:id/earn_fans_top_coin_count_group");
+                        while (earnedNode == null && countDown-- >= 0) {
+                            long start = System.currentTimeMillis();
+                            AccessibilityNodeInfo closeNode = mScreenManager
+                                    .getNodeById(mAppTitle, "com.kuaishou.nebula:id/live_red_packet_container_close_view");
+                            if (closeNode != null) {
+                                mScreenManager.tap(closeNode);
+                            }
+                            closeNode = mScreenManager
+                                    .getNodeById(mAppTitle, "com.kuaishou.nebula:id/close");
+                            if (closeNode != null) {
+                                mScreenManager.tap(closeNode);
+                            }
+                            long dif = System.currentTimeMillis() - start;
+                            if (dif < 1000) {
+                                Thread.sleep(1000 - dif);
+                            }
+
+                            appendLog("看:" + cnt + ",需:" + countDown);
+                            earnedNode = mScreenManager
+                                    .findNodeById(mAppTitle, "com.kuaishou.nebula:id/earn_fans_top_coin_count_group");
+                        }
+                    } else {
+                        appendLog("没找到倒计时");
                     }
-                    appendLog("退出看直播中");
-                    backToTaskView();
-                    return seeLive();
+                    ScreenManager.getInstance(getContext()).swipeUp(mAppTitle);
                 }
+                appendLog("退出看直播中");
+                backToTaskView();
+                return seeLive();
             }
-            return false;
-        } else {
-            // complete ad
+        } else if (remainNum == 0) {
             return true;
         }
+        return false;
+
+//        if (remainNum < 0) {
+//            return false;
+//        } else if (remainNum < 10) {
+//
+//
+//            List<AccessibilityNodeInfo> seeLiveNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "观看精彩直播得", 10);
+//            if (seeLiveNodes == null || seeLiveNodes.size() < 1) {
+//                seeLiveNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "直播任务", 10);
+//            }
+//            if (seeLiveNodes != null && seeLiveNodes.size() == 1) {
+//                AccessibilityNodeInfo liveContainerNode = seeLiveNodes.get(0).getParent();
+//                appendLog("直播子节点数:" + liveContainerNode.getChildCount());
+//                AccessibilityNodeInfo liveParentNode = null;
+//                for (int i = 0; 0 < liveContainerNode.getChildCount(); i++) {
+//                    CharSequence content = liveContainerNode.getChild(i).getText();
+//                    if (!TextUtils.isEmpty(content) &&
+//                            (content.toString().contains("看直播") || content.toString().contains("领福利"))) {
+//                        appendLog("找到看直播, i:" + i);
+//                        liveParentNode = liveContainerNode.getChild(i);
+//                        break;
+//                    }
+//                }
+//            }
+//            return false;
+//        } else {
+//            // complete ad
+//            return true;
+//        }
     }
 
     private void backToTaskView() throws InterruptedException {
@@ -541,30 +560,64 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         return taskSize > 0;
     }
 
-    private int getLiveRemainNum(int tryCnt) throws InterruptedException {
-        LogUtils.d(TAG, "getLiveRemainNum - retry cnt:" + tryCnt);
-        String completeText = mScreenManager.getWholeTextByStartString(mAppTitle, "今日已成功领取直播奖励金币");
-        String remainText = mScreenManager.getWholeTextByStartString(mAppTitle, "观看精彩直播得");
-        while (TextUtils.isEmpty(completeText) && TextUtils.isEmpty(remainText) && tryCnt-- > 0) {
-            LogUtils.d(TAG, "getLiveRemainNum - Not found, sleep 1s, remain retry cnt:" + tryCnt);
-            if (checkStop()) return -1;
-            Thread.sleep(1000);
-            remainText = mScreenManager.getWholeTextByStartString(mAppTitle, "观看精彩直播得");
-            completeText = mScreenManager.getWholeTextByStartString(mAppTitle, "今日已成功领取直播奖励金币");
-        }
-        if (!TextUtils.isEmpty(completeText)) {
-            return 10;
-        }
-        if (!TextUtils.isEmpty(remainText)) {
-            int remainNumIndex = remainText.indexOf('/') - 1;
-            if (remainNumIndex > 0) {
-                int r = remainText.charAt(remainNumIndex) - '0';
-                LogUtils.d(TAG, "getLiveRemainNum:" + remainText + ", char:" + remainText.charAt(remainNumIndex) + ", r:" + r);
-                return r;
+    private AccessibilityNodeInfo getLiveLayoutNode() throws InterruptedException {
+        int tryCnt = 10;
+        List<AccessibilityNodeInfo> liveTaskFuzzyNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "金币直播任务");
+        while (tryCnt-- > 0) {
+            if (liveTaskFuzzyNodes != null && liveTaskFuzzyNodes.size() > 0) {
+                AccessibilityNodeInfo liveLayoutNode = liveTaskFuzzyNodes.get(0).getParent();
+                int childCnt = liveLayoutNode.getChildCount();
+                appendLog("found liveLayoutNode childCnt:" + childCnt);
+                return liveLayoutNode;
+            } else {
+                liveTaskFuzzyNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "金币直播任务");
             }
         }
-        LogUtils.d(TAG, "getLiveRemainNum - not found");
+        return null;
+    }
+
+    private int getLiveRemainNum(AccessibilityNodeInfo liveLayoutNode) throws InterruptedException {
+        int childCnt = liveLayoutNode.getChildCount();
+        for (int i = 0; i < childCnt; i++) {
+            AccessibilityNodeInfo nodeInfo = liveLayoutNode.getChild(i);
+            CharSequence nodeCharSequence = nodeInfo.getText();
+            if (nodeCharSequence != null) {
+                String remainText = nodeCharSequence.toString();
+                appendLog("getLiveRemainNum text:" + remainText);
+                if (nodeCharSequence.toString().contains("海量主播发福利")) {
+                    Matcher matcher = Pattern.compile("\\d{1,2}/\\d{1,2}").matcher(remainText);
+                    if (matcher.find()) {
+                        String matStr = matcher.group();
+                        appendLog("matcher remain num:" + matStr);
+                        String[] nums = matStr.split("/");
+                        int remainNum = Integer.valueOf(nums[1]) - Integer.valueOf(nums[0]);
+                        appendLog("remainNum:" + remainNum);
+                        LogUtils.d(TAG, "matcher remain num:" + matStr + ", remainNum:" + remainNum);
+                        return remainNum;
+                    }
+                } else if (nodeCharSequence.toString().contains("今日已成功领取直播奖励")) {
+                    return 0;
+                }
+            }
+        }
         return -1;
+    }
+
+    private AccessibilityNodeInfo getLiveTaskNode(AccessibilityNodeInfo liveLayoutNode) throws InterruptedException {
+        int childCnt = liveLayoutNode.getChildCount();
+        LogUtils.d(TAG, "getLiveTaskNode childCnt:" + childCnt);
+        for (int i = 0; i < childCnt; i++) {
+            AccessibilityNodeInfo nodeInfo = liveLayoutNode.getChild(i);
+            CharSequence nodeCharSequence = nodeInfo.getText();
+            LogUtils.d(TAG,"live i:" + i + ", text" + nodeCharSequence);
+            appendLog("live i:" + i + ", text" + nodeCharSequence);
+            if (nodeCharSequence != null
+                    && nodeCharSequence.toString().contains("领福利")) {
+                appendLog("live task node found");
+                return nodeInfo;
+            }
+        }
+        return null;
     }
 
     private int getAdRemainNum(int tryCnt) throws InterruptedException {
