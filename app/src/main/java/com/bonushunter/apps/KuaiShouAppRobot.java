@@ -56,7 +56,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
                 appendLog("completeOpenBox:" + completeOpenBox);
             }
 
-            // start see AD task
+//             start see AD task
             if (!completeSeeAD) {
                 completeSeeAD = seeAd();
                 appendLog("completeSeeAD:" + completeSeeAD);
@@ -180,6 +180,8 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             return false;
         }
 
+        handleUnexpectedView(10);
+
         updateFloatPrompt("打开宝箱中");
         List<AccessibilityNodeInfo> openBoxNodes =
                 mScreenManager.getNodesByFuzzySearch(mAppTitle, "treasurebox", 10);
@@ -221,6 +223,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             return false;
         }
 
+        handleUnexpectedView(10);
         updateFloatPrompt("做广告任务中");
 
         // start to see ad
@@ -391,7 +394,7 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         while(true) {
             if (checkStop()) return false;
 
-            if (System.currentTimeMillis() - startTime > 10 *60 * 1000) {
+            if (System.currentTimeMillis() - startTime > 200 * 60 * 1000) {
                 return false;
             }
 
@@ -438,26 +441,23 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
 //        mScreenManager.getWholeTextByStartString(mAppTitle, "宝箱");
 
-        // check if already complete ad task
-        int adRemainNum = getAdRemainNum(15);
-        appendLog("startSeeAd - remain num:" + adRemainNum);
-        if (adRemainNum < 0) {
-            return false;
-        } else if (adRemainNum > 0) {
-            // see Ad
-            if (tryTapViewByFuzzySearch("android.widget.Button", "福利", 5)) {
-                if (handleSeeAd()) {
-                    maxEmptyNum = SEE_AD_EMPTY_MAX_NUM;
-                } else {
-                    maxEmptyNum -= 1;
+        AccessibilityNodeInfo adLayoutNode = getAdLayoutNode();
+        if (adLayoutNode != null) {
+            int remainCnt = getAdRemainNum(adLayoutNode);
+            if (remainCnt > 0) {
+                AccessibilityNodeInfo adTaskNode = getAdTaskNode(adLayoutNode.getParent());
+                if (adLayoutNode != null && mScreenManager.tap(adTaskNode)) {
+                    if (handleSeeAd()) {
+                        maxEmptyNum = SEE_AD_EMPTY_MAX_NUM;
+                    } else {
+                        maxEmptyNum -= 1;
+                    }
+                    Thread.sleep(1000);
+                    return startSeeAd(maxEmptyNum);
                 }
             }
-            Thread.sleep(1000);
-            return startSeeAd(maxEmptyNum);
-        } else {
-            // complete ad
-            return true;
         }
+        return false;
     }
 
     private boolean handleSeeAd() throws InterruptedException {
@@ -562,15 +562,19 @@ public class KuaiShouAppRobot extends BaseAppRobot {
 
     private AccessibilityNodeInfo getLiveLayoutNode() throws InterruptedException {
         int tryCnt = 10;
-        List<AccessibilityNodeInfo> liveTaskFuzzyNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "金币直播任务");
         while (tryCnt-- > 0) {
+            List<AccessibilityNodeInfo> liveTaskFuzzyNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "金币直播任务");
+            if (liveTaskFuzzyNodes == null || liveTaskFuzzyNodes.size() <= 0) {
+                liveTaskFuzzyNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "看直播领");
+            }
+            LogUtils.d(TAG, "getLiveLayoutNode - tryCnt:" + tryCnt
+                    + ", liveTaskFuzzyNodes:" + liveTaskFuzzyNodes.size());
             if (liveTaskFuzzyNodes != null && liveTaskFuzzyNodes.size() > 0) {
                 AccessibilityNodeInfo liveLayoutNode = liveTaskFuzzyNodes.get(0).getParent();
                 int childCnt = liveLayoutNode.getChildCount();
+                LogUtils.d(TAG, "getLiveLayoutNode - found liveLayoutNode childCnt:" + childCnt);
                 appendLog("found liveLayoutNode childCnt:" + childCnt);
                 return liveLayoutNode;
-            } else {
-                liveTaskFuzzyNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "金币直播任务");
             }
         }
         return null;
@@ -583,16 +587,18 @@ public class KuaiShouAppRobot extends BaseAppRobot {
             CharSequence nodeCharSequence = nodeInfo.getText();
             if (nodeCharSequence != null) {
                 String remainText = nodeCharSequence.toString();
+                LogUtils.d(TAG, "getLiveRemainNum getLiveRemainNum text:" + remainText);
                 appendLog("getLiveRemainNum text:" + remainText);
-                if (nodeCharSequence.toString().contains("海量主播发福利")) {
+                if (nodeCharSequence.toString().contains("海量主播发福利") || nodeCharSequence.toString().contains("观看精彩直播得")) {
                     Matcher matcher = Pattern.compile("\\d{1,2}/\\d{1,2}").matcher(remainText);
                     if (matcher.find()) {
                         String matStr = matcher.group();
+                        LogUtils.d(TAG, "getLiveRemainNum matcher remain num:" + matStr);
                         appendLog("matcher remain num:" + matStr);
                         String[] nums = matStr.split("/");
                         int remainNum = Integer.valueOf(nums[1]) - Integer.valueOf(nums[0]);
+                        LogUtils.d(TAG, "getLiveRemainNum matcher remain num:" + matStr + ", remainNum:" + remainNum);
                         appendLog("remainNum:" + remainNum);
-                        LogUtils.d(TAG, "matcher remain num:" + matStr + ", remainNum:" + remainNum);
                         return remainNum;
                     }
                 } else if (nodeCharSequence.toString().contains("今日已成功领取直播奖励")) {
@@ -607,14 +613,138 @@ public class KuaiShouAppRobot extends BaseAppRobot {
         int childCnt = liveLayoutNode.getChildCount();
         LogUtils.d(TAG, "getLiveTaskNode childCnt:" + childCnt);
         for (int i = 0; i < childCnt; i++) {
+            AccessibilityNodeInfo childNode = liveLayoutNode.getChild(i);
+            int nextChildCnt = childNode.getChildCount();
+            if (nextChildCnt > 0) {
+                for (int j = 0; j < childCnt; j++) {
+                    AccessibilityNodeInfo nodeInfo = childNode.getChild(j);
+                    CharSequence nodeCharSequence = nodeInfo.getText();
+                    LogUtils.d(TAG,"live j:" + j + ", text" + nodeCharSequence);
+                    appendLog("live i:" + j + ", text" + nodeCharSequence);
+                    if (nodeCharSequence != null
+                            && (nodeCharSequence.toString().contains("领福利")
+                            || nodeCharSequence.toString().contains("看直播"))) {
+                        appendLog("live task node found");
+                        return nodeInfo;
+                    }
+                }
+            } else {
+                CharSequence nodeCharSequence = childNode.getText();
+                LogUtils.d(TAG,"live i:" + i + ", text" + nodeCharSequence);
+                appendLog("live i:" + i + ", text" + nodeCharSequence);
+                if (nodeCharSequence != null
+                        && (nodeCharSequence.toString().contains("领福利")
+                        || nodeCharSequence.toString().contains("看直播"))) {
+                    appendLog("live task node found");
+                    return childNode;
+                }
+            }
+
+        }
+        return null;
+    }
+
+    private AccessibilityNodeInfo getAdLayoutNode() throws InterruptedException {
+        int tryCnt = 10;
+        while (tryCnt-- > 0) {
+            List<AccessibilityNodeInfo> adTaskFuzzyNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "金币悬赏");
+            if (adTaskFuzzyNodes == null || adTaskFuzzyNodes.size() <= 0) {
+                adTaskFuzzyNodes = mScreenManager.getNodesByFuzzySearch(mAppTitle, "金币广告任务");
+            }
+            LogUtils.d(TAG, "getAdLayoutNode - tryCnt:" + tryCnt
+                    + ", adTaskFuzzyNodes:" + adTaskFuzzyNodes.size());
+            if (adTaskFuzzyNodes != null && adTaskFuzzyNodes.size() > 0) {
+                AccessibilityNodeInfo adLayoutNode = adTaskFuzzyNodes.get(0).getParent();
+                int childCnt = adLayoutNode.getChildCount();
+                LogUtils.d(TAG, "getAdLayoutNode - found liveLayoutNode childCnt:" + childCnt);
+                appendLog("found adLayoutNode childCnt:" + childCnt);
+                return adLayoutNode;
+            }
+        }
+        return null;
+    }
+
+    private int getAdRemainNum(AccessibilityNodeInfo liveLayoutNode) throws InterruptedException {
+        int childCnt = liveLayoutNode.getChildCount();
+        for (int i = 0; i < childCnt; i++) {
             AccessibilityNodeInfo nodeInfo = liveLayoutNode.getChild(i);
             CharSequence nodeCharSequence = nodeInfo.getText();
-            LogUtils.d(TAG,"live i:" + i + ", text" + nodeCharSequence);
-            appendLog("live i:" + i + ", text" + nodeCharSequence);
-            if (nodeCharSequence != null
-                    && nodeCharSequence.toString().contains("领福利")) {
-                appendLog("live task node found");
-                return nodeInfo;
+            if (nodeCharSequence != null) {
+                String remainText = nodeCharSequence.toString();
+                LogUtils.d(TAG, "getAdRemainNum text:" + remainText);
+                appendLog("getAdRemainNum text:" + remainText);
+                if (nodeCharSequence.toString().contains("观看广告单日")
+                        || nodeCharSequence.toString().contains("看广告赚金币")/* || nodeCharSequence.toString().contains("观看精彩直播得")*/) {
+                    Matcher matcher = Pattern.compile("\\d{1,2}/\\d{1,2}").matcher(remainText);
+                    if (matcher.find()) {
+                        String matStr = matcher.group();
+                        LogUtils.d(TAG, "getAdRemainNum matcher remain num:" + matStr);
+                        appendLog("matcher remain num:" + matStr);
+                        String[] nums = matStr.split("/");
+                        int remainNum = Integer.valueOf(nums[1]) - Integer.valueOf(nums[0]);
+                        LogUtils.d(TAG, "getAdRemainNum matcher remain num:" + matStr + ", remainNum:" + remainNum);
+                        appendLog("remainNum:" + remainNum);
+                        return remainNum;
+                    }
+                } else if (nodeCharSequence.toString().contains("明天") || nodeCharSequence.toString().contains("明日")) {
+                    return 0;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private AccessibilityNodeInfo getAdTaskNode(AccessibilityNodeInfo adTaskLayoutNode) throws InterruptedException {
+        int childCnt = adTaskLayoutNode.getChildCount();
+        LogUtils.d(TAG, "getAdTaskNode adTaskLayoutNode childCnt:" + childCnt);
+        for (int i = 1; i < childCnt; i++) {
+            AccessibilityNodeInfo childNode = adTaskLayoutNode.getChild(i);
+            int nextChildCnt = childNode.getChildCount();
+            if (nextChildCnt > 0) {
+                for (int j = 0; j < nextChildCnt; j++) {
+                    AccessibilityNodeInfo nodeInfo = childNode.getChild(j);
+                    CharSequence nodeCharSequence = nodeInfo.getText();
+                    LogUtils.d(TAG, "getAdTaskNode j:" + j + ", text" + nodeCharSequence);
+                    appendLog("getAdTaskNode j:" + j + ", text" + nodeCharSequence);
+                    if (nodeCharSequence != null
+                            && (nodeCharSequence.toString().contains("福利")
+                            || nodeCharSequence.toString().contains("看直播"))) {
+                        appendLog("getAdTaskNode found");
+                        return nodeInfo;
+                    }
+                }
+            } else {
+                CharSequence nodeCharSequence = childNode.getText();
+                LogUtils.d(TAG, "getAdTaskNode i:" + i + ", text" + nodeCharSequence);
+                appendLog("getAdTaskNode i:" + i + ", text" + nodeCharSequence);
+                if (nodeCharSequence != null
+                        && (nodeCharSequence.toString().contains("福利")
+                        || nodeCharSequence.toString().contains("看直播"))) {
+                    appendLog("getAdTaskNode found");
+                    return childNode;
+                }
+            }
+        }
+
+
+        AccessibilityNodeInfo adBtnLayoutNode = null;
+        if (childCnt == 2) {
+            adBtnLayoutNode = adTaskLayoutNode.getChild(1);
+        }
+        if (adBtnLayoutNode != null) {
+            childCnt = adBtnLayoutNode.getChildCount();
+            appendLog("ad childCnt:" + childCnt);
+            for (int i = 0; i < childCnt; i++) {
+                AccessibilityNodeInfo nodeInfo = adBtnLayoutNode.getChild(i);
+                CharSequence nodeCharSequence = nodeInfo.getText();
+                LogUtils.d(TAG, "getAdTaskNode i:" + i + ", text" + nodeCharSequence);
+                appendLog("getAdTaskNode i:" + i + ", text" + nodeCharSequence);
+                if (nodeCharSequence != null
+                        && (nodeCharSequence.toString().contains("福利")
+                        || nodeCharSequence.toString().contains("看直播"))) {
+                    appendLog("getAdTaskNode found");
+                    return nodeInfo;
+                }
             }
         }
         return null;

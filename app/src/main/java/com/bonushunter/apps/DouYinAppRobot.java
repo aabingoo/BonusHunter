@@ -2,10 +2,7 @@ package com.bonushunter.apps;
 
 import android.content.Context;
 
-import com.bonushunter.R;
 import com.bonushunter.manager.ScreenManager;
-import com.bonushunter.task.ITask;
-import com.bonushunter.task.LaunchAppTask;
 import com.bonushunter.utils.AppRobotUtils;
 import com.bonushunter.utils.LogUtils;
 
@@ -27,7 +24,7 @@ public class DouYinAppRobot extends BaseAppRobot {
     public void doInBackground() throws InterruptedException {
         if (!launchApp()) stop();
 
-//        seeVideo();
+        seeVideo();
     }
 
     private boolean launchApp() {
@@ -36,7 +33,7 @@ public class DouYinAppRobot extends BaseAppRobot {
         return AppRobotUtils.launchApp(getContext(), mPackageName);
     }
 
-    private void seeVideo() {
+    private void seeVideo() throws InterruptedException {
         if (checkStop()) return;
 
         updateFloatPrompt("看抖音视频赚钱中...");
@@ -54,7 +51,7 @@ public class DouYinAppRobot extends BaseAppRobot {
                 mScreenManager.swipeUp(mAppTitle);
             }
             cnt += 1;
-            wait(12);
+            Thread.sleep(8000);
         }
     }
 }
